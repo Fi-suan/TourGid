@@ -24,17 +24,20 @@ import { VoiceAssistant } from '../components/VoiceAssistant';
 import { ATTRACTIONS, INTERESTS, REGIONS } from '../constants/data';
 import { getSmartFilteredAttractions, findNearestRegion, getUserLocation, filterAttractionsByRegion } from '../utils/geoUtils';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../context/LanguageContext';
+import TranslationService from '../services/TranslationService';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
 const { width } = Dimensions.get('window');
 
 export const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const t = (key, params) => TranslationService.translate(key, params);
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredAttractions, setFilteredAttractions] = useState(ATTRACTIONS);
+  const [attractions, setAttractions] = useState([]);
+  const [filteredAttractions, setFilteredAttractions] = useState([]);
   const [selectedInterest, setSelectedInterest] = useState(null);
   const [menuAnim] = useState(new Animated.Value(-width));
   const [aiGeneratedRoute, setAiGeneratedRoute] = useState(null);
@@ -42,6 +45,12 @@ export const HomeScreen = ({ navigation }) => {
   const [currentRegion, setCurrentRegion] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [searchPlaceholder, setSearchPlaceholder] = useState('');
+  const [routesButtonText, setRoutesButtonText] = useState('');
+  const [regionLoadingText, setRegionLoadingText] = useState('');
+  const [noResultsText, setNoResultsText] = useState('');
+  const [showAllText, setShowAllText] = useState('');
+  const [menuItems, setMenuItems] = useState({});
 
   const handleAIRouteGenerated = useCallback((routeData) => {
     console.log('AI Generated Route:', routeData);
@@ -65,7 +74,7 @@ export const HomeScreen = ({ navigation }) => {
   const handleSearch = useCallback((text) => {
     setSearchQuery(text);
     
-    let filtered = ATTRACTIONS;
+    let filtered = attractions;
     
     if (text) {
       filtered = filtered.filter(attraction => 
@@ -82,7 +91,7 @@ export const HomeScreen = ({ navigation }) => {
     }
     
     setFilteredAttractions(filtered);
-  }, [selectedInterest]);
+  }, [selectedInterest, attractions]);
 
   const handleInterestSelect = useCallback((interest) => {
     if (selectedInterest && selectedInterest.id === interest.id) {
@@ -94,7 +103,7 @@ export const HomeScreen = ({ navigation }) => {
 
   // 🆕 Обновленный эффект для фильтрации с учетом интересов
   React.useEffect(() => {
-    let baseAttractions = ATTRACTIONS;
+    let baseAttractions = attractions;
     
     let filtered = baseAttractions;
     
@@ -113,10 +122,10 @@ export const HomeScreen = ({ navigation }) => {
     }
     
     setFilteredAttractions(filtered);
-  }, [selectedInterest, searchQuery]);
+  }, [selectedInterest, searchQuery, attractions]);
 
   useEffect(() => {
-    const initializeLocation = async () => {
+    const initializeApp = async () => {
       setLocationLoading(true);
       const locationData = await getUserLocation();
       
@@ -124,16 +133,52 @@ export const HomeScreen = ({ navigation }) => {
         setUserLocation(locationData.userLocation);
         if (locationData.nearestRegion) {
           setCurrentRegion(locationData.nearestRegion);
-          // Фильтруем достопримечательности по региону
-          const regionAttractions = filterAttractionsByRegion(ATTRACTIONS, locationData.nearestRegion.id);
+          const regionAttractions = filterAttractionsByRegion(attractions, locationData.nearestRegion.id);
           setFilteredAttractions(regionAttractions);
         }
       }
       setLocationLoading(false);
     };
     
-    initializeLocation();
-  }, []);
+    if (attractions.length > 0) {
+      initializeApp();
+    }
+  }, [attractions]);
+
+  useEffect(() => {
+    const translateAttractions = () => {
+      const translated = ATTRACTIONS.map(attraction => ({
+        ...attraction,
+        name: t(attraction.name),
+        description: t(attraction.description)
+      }));
+      setAttractions(translated);
+      setFilteredAttractions(translated);
+    };
+
+    translateAttractions();
+  }, [language]);
+
+  // Отдельный useEffect для обновления переводов при смене языка
+  useEffect(() => {
+    const loadTranslations = async () => {
+      const translations = {
+        searchPlaceholder: await t('screens.home.searchPlaceholder'),
+        noResultsText: await t('screens.home.noAttractionsFound'),
+        showAllText: await t('screens.home.showAllInRegion'),
+        menu: await t('common.menu'),
+        historicalFacts: await t('screens.historicalFacts.menuItem'),
+        regionInfo: await t('screens.regionInfo.menuItem'),
+        settings: await t('screens.settings.title'),
+        routes: await t('screens.routes.title') // Добавляем перевод для маршрутов
+      };
+      setSearchPlaceholder(translations.searchPlaceholder);
+      setNoResultsText(translations.noResultsText);
+      setShowAllText(translations.showAllText);
+      setMenuItems(translations);
+    };
+    loadTranslations();
+  }, [language]);
 
   const handleMenuItemPress = (screenName) => {
     toggleMenu(false);
@@ -162,7 +207,7 @@ export const HomeScreen = ({ navigation }) => {
             <TextInput
               ref={searchInputRef}
               style={[styles.searchInput, { color: theme.colors.text }]}
-              placeholder="Поиск в Астане и Павлодаре..."
+              placeholder={searchPlaceholder || t('screens.home.searchPlaceholder')}
               placeholderTextColor={theme.colors.textSecondary}
               value={searchQuery}
               onChangeText={handleSearch}
@@ -177,12 +222,7 @@ export const HomeScreen = ({ navigation }) => {
               >
                 <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
-            ) : (
-              <View style={styles.aiIndicator}>
-                <Ionicons name="mic-outline" size={16} color={theme.colors.primary} />
-                <Text style={[styles.aiText, { color: theme.colors.primary }]}>AI</Text>
-              </View>
-            )}
+            ) : null}
           </View>
           
           {/* AI Route notification */}
@@ -205,48 +245,12 @@ export const HomeScreen = ({ navigation }) => {
             selectedInterest={selectedInterest}
           />
           
-          {/* Статистика по двум городам */}
-          <View style={[styles.statsContainer, { backgroundColor: theme.colors.cardBackground }]}>
-            <Text style={[styles.statsText, { color: theme.colors.textSecondary }]}>
-              🏛️ {filteredAttractions.filter(a => a.regionId === 'astana').length} мест в Астане  •  
-              🏭 {filteredAttractions.filter(a => a.regionId === 'pavlodar').length} мест в Павлодаре
-            </Text>
-          </View>
-          
-          <TouchableOpacity 
-            style={[styles.routesButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => handleMenuItemPress('Routes')}
-          >
-            <Text style={styles.routesButtonText}>Готовые маршруты</Text>
-            <Text style={styles.routesButtonSubtext}>
-              Лучшие маршруты по Астане и Павлодару
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Индикатор текущего региона */}
-          {currentRegion && (
-            <View style={[styles.regionIndicator, { backgroundColor: theme.colors.primary }]}>
-              <Ionicons name="location" size={16} color="white" />
-              <Text style={styles.regionText}>
-                📍 {currentRegion.name} ({Math.round(currentRegion.distance)} км)
-              </Text>
-              <TouchableOpacity 
-                style={styles.changeRegionButton}
-                onPress={() => {
-                  // Показать все достопримечательности
-                  setCurrentRegion(null);
-                  setFilteredAttractions(ATTRACTIONS);
-                }}
-              >
-                <Text style={styles.changeRegionText}>Показать все</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          {/* Кнопка Готовые маршруты и индикатор региона теперь убраны */}
           
           {locationLoading && (
             <View style={styles.locationLoading}>
               <Text style={[styles.locationLoadingText, { color: theme.colors.textSecondary }]}>
-                🗺️ Определяем ваше местоположение...
+                {t('screens.home.determiningLocation')}
               </Text>
             </View>
           )}
@@ -264,10 +268,7 @@ export const HomeScreen = ({ navigation }) => {
           ) : (
             <View style={styles.noResultsContainer}>
               <Text style={[styles.noResultsText, { color: theme.colors.textSecondary }]}>
-                {searchQuery ? 
-                  `Ничего не найдено по запросу "${searchQuery}"` : 
-                  'Достопримечательности не найдены'
-                }
+                {noResultsText || (searchQuery ? `Ничего не найдено по запросу "${searchQuery}"` : t('screens.home.noAttractionsFound'))}
               </Text>
               {currentRegion && (
                 <TouchableOpacity 
@@ -279,7 +280,7 @@ export const HomeScreen = ({ navigation }) => {
                   }}
                 >
                   <Text style={[styles.showAllButtonText, { color: theme.colors.primary }]}>
-                    Показать все места в {currentRegion.name}
+                    {showAllText || t('screens.home.showAllInRegion', { regionName: currentRegion.name })}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -290,9 +291,10 @@ export const HomeScreen = ({ navigation }) => {
 
       {/* Voice Assistant Floating Button */}
       <VoiceAssistant
-        currentLocation={null}
-        attractionsData={ATTRACTIONS}
+        currentLocation={userLocation}
+        attractionsData={attractions}
         onRouteGenerated={handleAIRouteGenerated}
+        navigation={navigation}
       />
       
       <Animated.View 
@@ -305,19 +307,30 @@ export const HomeScreen = ({ navigation }) => {
         ]}
       >
         <View style={styles.menuHeader}>
-          <Text style={[styles.menuTitle, { color: theme.colors.text }]}>Меню</Text>
+          <Text style={[styles.menuTitle, { color: theme.colors.text }]}>{menuItems.menu || '...'}</Text>
           <TouchableOpacity onPress={() => toggleMenu(false)}>
             <Ionicons name="close" size={24} color={theme.colors.text} />
           </TouchableOpacity>
         </View>
         
+        {/* Пункты меню */}
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => handleMenuItemPress('Routes')}
+        >
+          <Ionicons name="map" size={24} color={theme.colors.primary} style={styles.menuIcon} />
+          <Text style={[styles.menuText, { color: theme.colors.text }]}>
+            {menuItems.routes || '...'}
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity 
           style={styles.menuItem}
           onPress={() => handleMenuItemPress('HistoricalFacts')}
         >
           <Ionicons name="book" size={24} color={theme.colors.primary} style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.text }]}>
-            История Павлодара
+            {menuItems.historicalFacts || '...'}
           </Text>
         </TouchableOpacity>
         
@@ -327,7 +340,7 @@ export const HomeScreen = ({ navigation }) => {
         >
           <Ionicons name="information-circle" size={24} color={theme.colors.primary} style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.text }]}>
-            О Павлодарской области
+            {menuItems.regionInfo || '...'}
           </Text>
         </TouchableOpacity>
         
@@ -337,7 +350,7 @@ export const HomeScreen = ({ navigation }) => {
         >
           <Ionicons name="settings" size={24} color={theme.colors.primary} style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.text }]}>
-            Настройки
+            {menuItems.settings || '...'}
           </Text>
         </TouchableOpacity>
       </Animated.View>
@@ -369,7 +382,6 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
       },
       android: {
-        elevation: 2,
       },
     }),
   },
@@ -383,19 +395,6 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 5,
-  },
-  aiIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-  },
-  aiText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
   },
   aiRouteNotification: {
     flexDirection: 'row',
@@ -461,7 +460,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
-    elevation: 3,
   },
   menuIcon: {
     marginRight: 15,
@@ -488,15 +486,6 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     marginTop: 2,
   },
-  statsContainer: {
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  statsText: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
   regionIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -510,17 +499,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 6,
     flex: 1,
-  },
-  changeRegionButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  changeRegionText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '500',
   },
   locationLoading: {
     padding: 10,

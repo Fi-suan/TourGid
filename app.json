@@ -15,28 +15,34 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.nepitch.tourgid",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Приложению требуется доступ к вашему местоположению для отображения на карте и построения маршрутов."
+        "NSLocationWhenInUseUsageDescription": "Приложению требуется доступ к вашему местоположению для отображения на карте и построения маршрутов.",
+        "NSMicrophoneUsageDescription": "Приложению требуется доступ к микрофону для распознавания голосовых команд AI-ассистентом."
       },
       "config": {
-        "googleMapsApiKey": "AIzaSyDs42whH2dBmdmuNLIL2dN-i8C9VzxPVnU"
+        "googleMapsApiKey": "AIzaSyDHLPatV3_3xG1cdx0nvEhxCdn2XEgnzac"
       }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO"
+      ],
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDs42whH2dBmdmuNLIL2dN-i8C9VzxPVnU"
+          "apiKey": "AIzaSyDHLPatV3_3xG1cdx0nvEhxCdn2XEgnzac"
         }
-      }
+      },
+      "package": "com.nepitch.tourgid"
     },
     "platforms": [
       "ios",
       "android",
       "web"
     ],
-    "sdkVersion": "53.0.0",
+    "sdkVersion": "54.0.0",
     "extra": {
       "eas": {
         "projectId": "91206025-dd3a-4308-abfa-5e8ea3e2de36"

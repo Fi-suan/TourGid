@@ -11,24 +11,24 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 
 const { width } = Dimensions.get('window');
 
 export const RegionInfoScreen = () => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Image 
-        source={require('../assets/kyzyltau-reserve.jpg')} 
+        source={require('../assets/pavlodar/kyzyltau-reserve.jpg')} 
         style={styles.headerImage}
       />
       
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          Павлодарская область
+          {t('screens.regionInfo.title')}
         </Text>
         
         <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
@@ -59,54 +59,54 @@ export const RegionInfoScreen = () => {
         </View>
         
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          География
+          {t('regionInfo.geographyTitle')}
         </Text>
         <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
           {t('regionInfo.geography')}
         </Text>
         
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          История
+          {t('regionInfo.historyTitle')}
         </Text>
         <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
-          Основан в 1720 году как Коряковский форпост. В 1861 переименован в Павлодар. Активное развитие началось в 1950-х с освоением целины и строительством промышленных предприятий. В советское время стал крупным индустриальным центром Казахстана.
+          {t('regionInfo.historyDescription')}
         </Text>
         
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Культура
+          {t('regionInfo.cultureTitle')}
         </Text>
         <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
           {t('regionInfo.culture')}
         </Text>
         
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Природа
+          {t('regionInfo.natureTitle')}
         </Text>
         <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
           {t('regionInfo.nature')}
         </Text>
         
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Главные достопримечательности
+          {t('regionInfo.mainAttractionsTitle')}
         </Text>
         <View style={styles.attractionsList}>
           <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            • Мечеть Машхур Жусупа - духовный центр региона
+            {t('regionInfo.attraction1')}
           </Text>
           <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            • Благовещенский собор - памятник архитектуры XIX века
+            {t('regionInfo.attraction2')}
           </Text>
           <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            • Набережная Иртыша - главная прогулочная зона
+            {t('regionInfo.attraction3')}
           </Text>
           <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            • Баянаульский национальный парк - первый в Казахстане
+            {t('regionInfo.attraction4')}
           </Text>
           <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            • Соленое озеро Маралды - природная лечебница
+            {t('regionInfo.attraction5')}
           </Text>
           <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            • Дом-музей Павла Васильева - литературное наследие
+            {t('regionInfo.attraction6')}
           </Text>
         </View>
         
@@ -171,11 +171,6 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     borderRadius: 12,
     padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   infoRow: {
     flexDirection: 'row',
@@ -216,11 +211,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   linkText: {
     color: '#FFFFFF',

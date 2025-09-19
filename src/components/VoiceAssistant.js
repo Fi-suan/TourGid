@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 import AIService from '../services/AIService';
+import { getRouteToAttraction } from '../utils/geoUtils';
+import { ATTRACTIONS, INTERESTS } from '../constants/data';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,10 +23,11 @@ export const VoiceAssistant = ({
   currentLocation, 
   attractionsData, 
   onRouteGenerated, 
+  navigation,
   style 
 }) => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
   
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,7 +36,7 @@ export const VoiceAssistant = ({
   const [responseText, setResponseText] = useState('');
   const [pulseAnim] = useState(new Animated.Value(1));
 
-  // Анимация пульсации
+  // Pulse animation
   useEffect(() => {
     if (isListening || isProcessing) {
       const pulse = Animated.loop(
@@ -62,18 +65,11 @@ export const VoiceAssistant = ({
       setResponseText('');
       setIsListening(true);
 
-      await AIService.startListening(
-        (text) => {
-          console.log('Voice recognized:', text);
-          setTranscribedText(text);
-          processVoiceInput(text);
-        },
-        (error) => {
+      await AIService.startListening((error) => {
           console.error('Voice recognition error:', error);
           setIsListening(false);
-          Alert.alert('Ошибка', 'Не удалось распознать речь. Попробуйте еще раз.');
-        }
-      );
+          Alert.alert('Ошибка', 'Не удалось начать запись. Проверьте разрешения микрофона.');
+        });
     } catch (error) {
       console.error('Failed to start listening:', error);
       setIsListening(false);
@@ -83,37 +79,90 @@ export const VoiceAssistant = ({
 
   const stopListening = async () => {
     try {
-      await AIService.stopListening();
       setIsListening(false);
+      setIsProcessing(true);
+      setResponseText('Распознавание речи...');
+      
+      const recognizedText = await AIService.stopListening();
+      
+      if (recognizedText) {
+        setTranscribedText(recognizedText);
+        await processQuery(recognizedText);
+      } else {
+         setResponseText('Не удалось распознать речь. Попробуйте еще раз.');
+         setIsProcessing(false);
+      }
     } catch (error) {
       console.error('Failed to stop listening:', error);
+      setResponseText('Произошла ошибка при распознавании.');
+      setIsProcessing(false);
     }
   };
 
-  const processVoiceInput = async (text) => {
+  const processQuery = async (text) => {
     if (!text || text.trim().length === 0) {
+      setIsProcessing(false);
       return;
     }
 
     try {
-      setIsListening(false);
-      setIsProcessing(true);
+      setResponseText('Думаю...');
+      const result = await AIService.processVoiceQuery(text, currentLocation);
 
-      const result = await AIService.processVoiceQuery(
-        text,
-        currentLocation,
-        attractionsData,
-        onRouteGenerated
-      );
+      switch (result.function) {
+        case 'build_route':
+          const destinationName = result.destination;
+          const destinationAttraction = attractionsData.find(
+            (attr) => attr.name.toLowerCase() === destinationName.toLowerCase()
+          );
 
-      if (result.success) {
-        setResponseText(result.responseText);
-      } else {
-        setResponseText(result.responseText || 'Произошла ошибка при обработке запроса.');
+          if (destinationAttraction) {
+            setResponseText(`Строю маршрут к "${destinationName}"...`);
+            const routeData = await getRouteToAttraction(
+              currentLocation,
+              destinationAttraction
+            );
+            if (routeData && routeData.success) {
+              onRouteGenerated(routeData);
+              closeModal();
+            } else {
+              throw new Error('Не удалось построить маршрут.');
+            }
+          } else {
+            setResponseText(`К сожалению, я не смог найти "${destinationName}". Попробуйте другое место.`);
+          }
+          break;
+
+        case 'find_attractions':
+          const category = result.category;
+          const interest = INTERESTS.find(
+            (i) => t(i.name).toLowerCase() === category.toLowerCase()
+          );
+
+          if (interest) {
+            const matchingAttractions = ATTRACTIONS.filter((a) =>
+              a.categories.includes(interest.id)
+            );
+
+            if (matchingAttractions.length > 0) {
+              setResponseText(`Нашел ${matchingAttractions.length} мест в категории "${category}". Показываю на карте.`);
+              const attractionIds = matchingAttractions.map((a) => a.id);
+              navigation.navigate('Map', { selectedAttractions: attractionIds });
+              closeModal();
+            } else {
+              setResponseText(`В категории "${category}" ничего не найдено.`);
+            }
+          } else {
+            setResponseText(`Категория "${category}" не найдена.`);
+          }
+          break;
+
+        default:
+          setResponseText(result.responseText || "Не совсем понял, повторите, пожалуйста.");
       }
     } catch (error) {
-      console.error('Voice processing error:', error);
-      setResponseText('Произошла ошибка при обработке запроса.');
+      console.error('AI processing error:', error);
+      setResponseText('Произошла ошибка при обработке вашего запроса.');
     } finally {
       setIsProcessing(false);
     }
@@ -124,18 +173,14 @@ export const VoiceAssistant = ({
     setTranscribedText('');
     setResponseText('');
     if (isListening) {
-      stopListening();
+      AIService.stopListening().catch(e => console.error("Error stopping on close", e));
     }
   };
 
   const getStatusText = () => {
-    if (isListening) {
-      return 'ИИ слушает...';
-    } else if (isProcessing) {
-      return 'ИИ обрабатывает запрос...';
-    } else if (transcribedText) {
-      return 'Готово!';
-    }
+    if (isListening) return 'Говорите...';
+    if (isProcessing) return responseText; // Show intermediate statuses
+    if (transcribedText) return 'Запрос распознан!';
     return 'Нажмите чтобы говорить с ИИ';
   };
 
@@ -146,70 +191,8 @@ export const VoiceAssistant = ({
     return 'mic';
   };
 
-  const processWithBackendAPI = async (recognizedText) => {
-    try {
-      console.log('🌐 AIService: Calling REAL backend API at', BACKEND_URL);
-      
-      // Используем реальное местоположение если доступно
-      const requestData = {
-        query: recognizedText,
-        user_location: currentLocation || { 
-          latitude: 52.3, 
-          longitude: 76.95 
-        }
-      };
-      
-      console.log('📝 Request data:', requestData);
-      
-      // Тест health check
-      console.log('🔍 Testing backend health...');
-      try {
-        const healthResponse = await fetch(`${BACKEND_URL}/ping`, {
-          method: 'GET',
-          timeout: 5000
-        });
-        
-        if (healthResponse.ok) {
-          console.log('✅ Backend health check passed');
-        } else {
-          console.warn('⚠️ Backend health check failed:', healthResponse.status);
-        }
-      } catch (healthError) {
-        console.warn('⚠️ Backend health check failed:', healthError.message);
-      }
-      
-      console.log('🚀 Making AI request...');
-      const response = await fetch(`${BACKEND_URL}/ai/process-voice`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-        timeout: 10000
-      });
-      
-      console.log('📡 Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Backend API error response:', errorText);
-        throw new Error(`HTTP ${response.status}: \nResponse: ${errorText}`);
-      }
-      
-      const result = await response.json();
-      console.log('✅ Backend API success:', result);
-      
-      return result;
-      
-    } catch (error) {
-      console.error('💥 Backend API failed:', error);
-      throw error;
-    }
-  };
-
   return (
     <>
-      {/* Floating AI Button */}
       <Animated.View style={[
         styles.floatingButton,
         { transform: [{ scale: pulseAnim }] },
@@ -235,7 +218,6 @@ export const VoiceAssistant = ({
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Modal для взаимодействия с ИИ */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -245,14 +227,13 @@ export const VoiceAssistant = ({
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
             
-            {/* Header */}
             <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
               <View style={styles.headerLeft}>
                 <View style={[styles.aiIndicator, { backgroundColor: theme.colors.primary }]}>
                   <Ionicons name="sparkles" size={16} color="white" />
                 </View>
                 <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                  AI Помощник TourGid
+                  AI Помощник
                 </Text>
               </View>
               <TouchableOpacity 
@@ -265,7 +246,6 @@ export const VoiceAssistant = ({
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               
-              {/* Status Section */}
               <View style={styles.statusSection}>
                 <Animated.View style={[
                   styles.micContainer,
@@ -287,11 +267,10 @@ export const VoiceAssistant = ({
                 </Text>
                 
                 <Text style={[styles.hintText, { color: theme.colors.textSecondary }]}>
-                  Попробуйте: "Найди маршрут к Байтереку" или "Покажи музеи Павлодара"
+                  Попробуйте: "Найди маршрут к мечети" или "Покажи музеи"
                 </Text>
               </View>
 
-              {/* Transcribed Text */}
               {transcribedText ? (
                 <View style={[styles.textSection, { backgroundColor: theme.colors.cardBackground }]}>
                   <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
@@ -303,8 +282,7 @@ export const VoiceAssistant = ({
                 </View>
               ) : null}
 
-              {/* Response Text */}
-              {responseText ? (
+              {responseText && !isListening && !isProcessing ? (
                 <View style={[styles.textSection, { backgroundColor: theme.colors.cardBackground }]}>
                   <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
                     Ответ ИИ:
@@ -315,32 +293,18 @@ export const VoiceAssistant = ({
                 </View>
               ) : null}
 
-              {/* Action Buttons */}
-              <View style={styles.buttonSection}>
-                {!isListening && !isProcessing && (
+              {/* Кнопка остановки записи */}
+              {isListening && (
+                <View style={styles.actionButtonSection}>
                   <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-                    onPress={startListening}
-                  >
-                    <Ionicons name="mic" size={20} color="white" />
-                    <Text style={styles.actionButtonText}>
-                      Новый запрос
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                
-                {isListening && (
-                  <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: '#EF4444' }]}
+                    style={[styles.stopButton, { backgroundColor: '#EF4444' }]}
                     onPress={stopListening}
                   >
-                    <Ionicons name="stop" size={20} color="white" />
-                    <Text style={styles.actionButtonText}>
-                      Остановить
-                    </Text>
+                    <Ionicons name="stop" size={24} color="white" />
+                    <Text style={styles.stopButtonText}>{t('voiceAssistant.stopRecording')}</Text>
                   </TouchableOpacity>
-                )}
-              </View>
+                </View>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -446,17 +410,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    elevation: 2,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   transcribedText: {
     fontSize: 16,
@@ -467,22 +426,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  buttonSection: {
+  actionButtonSection: {
     marginTop: 20,
-    marginBottom: 20,
+    alignItems: 'center',
   },
-  actionButton: {
+  stopButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 12,
     elevation: 3,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  actionButtonText: {
+  stopButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',

@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 
 export const InterestSelector = ({ interests, onSelect, selectedInterest }) => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
   
   return (
     <View style={styles.container}>
@@ -39,7 +39,7 @@ export const InterestSelector = ({ interests, onSelect, selectedInterest }) => {
                   { color: isSelected ? '#FFFFFF' : theme.colors.primary },
                 ]}
               >
-                {t(`interests.${item.id}`)}
+                {TranslationService.translate(`interests.${item.id}`)}
               </Text>
             </TouchableOpacity>
           );

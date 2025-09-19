@@ -2,8 +2,8 @@
 
 import * as Location from 'expo-location';
 
-// Google Maps API ключ (из app.json)
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDs42whH2dBmdmuNLIL2dN-i8C9VzxPVnU';
+// Google Maps API ключ
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDHLPatV3_3xG1cdx0nvEhxCdn2XEgnzac';
 
 // Координаты регионов
 const REGIONS = [

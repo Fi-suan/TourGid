@@ -11,10 +11,37 @@ import {
 import { HistoricalMap } from '../components/HistoricalMap';
 import { ATTRACTIONS, ROUTES } from '../constants/data';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
+
+// Компонент для отображения текста, который может загружаться асинхронно
+const TranslatedText = ({ textKey, style }) => {
+  const { language } = useLanguage();
+  const [text, setText] = useState(textKey);
+
+  useEffect(() => {
+    let isMounted = true;
+    const translate = async () => {
+      const translationResult = TranslationService.translate(textKey);
+      if (typeof translationResult.then === 'function') {
+        translationResult.then(translatedText => {
+          if (isMounted) {
+            setText(translatedText);
+          }
+        });
+      } else {
+        setText(translationResult);
+      }
+    };
+    translate();
+    return () => { isMounted = false; };
+  }, [textKey, language]);
+
+  return <Text style={style}>{text}</Text>;
+};
 
 export const MapScreen = ({ route, navigation }) => {
   const { selectedAttractions, selectedRoute, aiRoute, destination } = route.params || {};
@@ -25,21 +52,19 @@ export const MapScreen = ({ route, navigation }) => {
   const [isAIRoute, setIsAIRoute] = useState(false);
   
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
 
   // Определяем, какие достопримечательности показывать
   useEffect(() => {
     let attractionsToShow = [];
+    let shouldShowRoute = false;
     
     if (aiRoute) {
       // AI-сгенерированный маршрут
       setIsAIRoute(true);
-      setShowRoute(true); // Автоматически показываем AI маршрут
-      
+      shouldShowRoute = true;
       attractionsToShow = [aiRoute.destination];
-      
-      // Если есть путевые точки, добавляем их тоже
-      if (aiRoute.route.waypoints && aiRoute.route.waypoints.length > 0) {
+      if (aiRoute.route?.waypoints) {
         const waypointAttractions = aiRoute.route.waypoints
           .map(wp => ATTRACTIONS.find(a => a.id === wp.attractionId))
           .filter(Boolean);
@@ -52,20 +77,28 @@ export const MapScreen = ({ route, navigation }) => {
         attractionsToShow = routeData.attractions
           .map(id => ATTRACTIONS.find(a => a.id === id))
           .filter(Boolean);
-        // Автоматически включаем отображение маршрута
-        setShowRoute(true);
+        shouldShowRoute = true;
       }
     } else if (selectedAttractions && selectedAttractions.length > 0) {
+      // Показ одной или нескольких выбранных достопримечательностей без маршрута
       attractionsToShow = ATTRACTIONS.filter(a => selectedAttractions.includes(a.id));
     } else {
-      attractionsToShow = ATTRACTIONS;
+      // По умолчанию на карте ничего не показываем (ни маркеров, ни маршрутов)
+      attractionsToShow = [];
     }
     
-    setAttractions(attractionsToShow);
+    const translatedAttractions = attractionsToShow.map(attraction => ({
+      ...attraction,
+      name: t(attraction.name),
+      description: t(attraction.description)
+    }));
+    
+    setAttractions(translatedAttractions);
+    setShowRoute(shouldShowRoute);
     
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 500); // Уменьшил задержку
     
     return () => clearTimeout(timer);
   }, [selectedAttractions, selectedRoute, aiRoute]);
@@ -130,20 +163,33 @@ export const MapScreen = ({ route, navigation }) => {
           </View>
         )}
         
-        <Text style={[styles.attractionName, { color: theme.colors.text }]}>
-          {selectedMarker.name}
-        </Text>
+        <Text style={[styles.attractionName, { color: theme.colors.text }]}>{selectedMarker.name}</Text>
         <Text style={[styles.attractionLocation, { color: theme.colors.textSecondary }]}>
           {selectedMarker.location}
         </Text>
         
-        <TouchableOpacity 
-          style={[styles.detailsButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => handleDetailsPress(selectedMarker)}
-        >
-          <Text style={styles.detailsButtonText}>{t('screens.attractionDetail.title')}</Text>
-          <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={[styles.detailsButton, { backgroundColor: theme.colors.primary, flex: 1 }]}
+            onPress={() => handleDetailsPress(selectedMarker)}
+          >
+            <Text style={styles.detailsButtonText}>{t('common.details')}</Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {/* Кнопка "Построить маршрут" */}
+          <TouchableOpacity 
+            style={[styles.routeButton, { borderColor: theme.colors.primary }]}
+            onPress={() => {
+              navigation.navigate('Map', { 
+                aiRoute: { destination: selectedMarker },
+                isAIRoute: true
+              });
+            }}
+          >
+            <Ionicons name="navigate" size={16} color={theme.colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -153,7 +199,7 @@ export const MapScreen = ({ route, navigation }) => {
       <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-          {isAIRoute ? 'Строим AI маршрут...' : t('common.loadingMap')}
+          {isAIRoute ? 'Строим AI маршрут...' : TranslationService.translate('common.loadingMap')}
         </Text>
       </View>
     );
@@ -163,19 +209,7 @@ export const MapScreen = ({ route, navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {renderAIRouteInfo()}
       
-      {attractions.length > 1 && !isAIRoute && (
-        <View style={[styles.routeToggle, { backgroundColor: theme.colors.cardBackground }]}>
-          <Text style={[styles.routeToggleText, { color: theme.colors.text }]}>
-            Показать маршрут
-          </Text>
-          <Switch
-            value={showRoute}
-            onValueChange={setShowRoute}
-            trackColor={{ false: "#767577", true: theme.colors.primary + "80" }}
-            thumbColor={showRoute ? theme.colors.primary : "#f4f3f4"}
-          />
-        </View>
-      )}
+      {/* Убираем переключатель "Показать маршрут", так как маршрут показывается автоматически при выборе */}
       
       <HistoricalMap 
         attractions={attractions}
@@ -183,6 +217,8 @@ export const MapScreen = ({ route, navigation }) => {
         showRoute={showRoute}
         aiRoute={aiRoute}
         isAIRoute={isAIRoute}
+        // Маркеры показываются только если есть достопримечательности для отображения
+        showMarkers={attractions.length > 0}
       />
       
       {renderAttractionPanel()}
@@ -211,11 +247,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   aiRouteHeader: {
     flexDirection: 'row',
@@ -259,11 +290,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
   routeToggleText: {
     marginRight: 8,
@@ -276,11 +302,6 @@ const styles = StyleSheet.create({
     right: 20,
     padding: 15,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3
   },
   aiPanelHeader: {
     flexDirection: 'row',
@@ -305,14 +326,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   detailsButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
     marginRight: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+  },
+  routeButton: {
+    paddingHorizontal: 12,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 }); 

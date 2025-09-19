@@ -75,7 +75,6 @@ export const RouteSelector = ({ navigation }) => {
                   style={styles.routeImage}
                 />
               )}
-              <View style={styles.routeOverlay} />
               <View style={styles.routeContent}>
                 <Text style={styles.routeName}>{item.name}</Text>
                 <View style={styles.routeInfo}>
@@ -227,10 +226,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-  },
-  routeOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   routeContent: {
     position: 'absolute',

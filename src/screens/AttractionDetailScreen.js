@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ScrollView, 
   View, 
@@ -7,18 +7,103 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
-  Dimensions
+  Dimensions,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
+import GoogleAPIService from '../services/GoogleAPIService';
+import { useLanguage } from '../context/LanguageContext';
+import { getUserLocation, getRouteToAttraction } from '../utils/geoUtils';
 
 const { width } = Dimensions.get('window');
+
+// Компонент для отображения текста, который может загружаться асинхронно
+const TranslatedText = ({ textKey, style, params = {} }) => {
+  const { language } = useLanguage();
+  const [text, setText] = useState(textKey);
+
+  useEffect(() => {
+    let isMounted = true;
+    const translate = async () => {
+      const translationResult = TranslationService.translate(textKey, params);
+      if (typeof translationResult.then === 'function') {
+        translationResult.then(translatedText => {
+          if (isMounted) {
+            setText(translatedText);
+          }
+        });
+      } else {
+        setText(translationResult);
+      }
+    };
+    translate();
+    return () => { isMounted = false; };
+  }, [textKey, language, params]);
+
+  return <Text style={style}>{text}</Text>;
+};
 
 export const AttractionDetailScreen = ({ route, navigation }) => {
   const { attraction } = route.params;
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
+
+  const [placeDetails, setPlaceDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+
+  useEffect(() => {
+    const init = async () => {
+      const location = await getUserLocation();
+      if (location) {
+        setUserLocation(location.userLocation);
+      }
+    };
+    init();
+  }, []);
+
+  useEffect(() => {
+    const updateTitle = async () => {
+      const translatedTitle = await TranslationService.translate(attraction.name);
+      navigation.setOptions({ title: translatedTitle });
+    };
+    updateTitle();
+
+    const fetchPlaceDetails = async () => {
+      if (!attraction.coordinates) return;
+      
+      setLoadingDetails(true);
+      try {
+        const places = await GoogleAPIService.findPlaceFromText(`${t(attraction.name)}, ${attraction.location}`);
+        
+        if (places && places.length > 0) {
+          const details = await GoogleAPIService.getPlaceDetails(places[0].place_id);
+          setPlaceDetails(details);
+        }
+      } catch (error) {
+        console.error("Failed to fetch place details:", error);
+      }
+      setLoadingDetails(false);
+    };
+
+    fetchPlaceDetails();
+  }, [attraction, navigation]);
+  
+  const handleGetDirections = async () => {
+    if (!userLocation) {
+      alert('Не удалось получить ваше местоположение.');
+      return;
+    }
+
+    const routeData = await getRouteToAttraction(userLocation, attraction);
+    if (routeData && routeData.success) {
+      navigation.navigate('Map', { aiRoute: routeData, destination: attraction });
+    } else {
+      alert('Не удалось построить маршрут.');
+    }
+  };
 
   const callPhone = (phone) => {
     if (phone) {
@@ -65,49 +150,122 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
     return stars;
   };
 
+  const renderInfoRow = (icon, labelKey, value) => (
+    <View style={styles.infoRow}>
+      <Ionicons name={icon} size={16} color={theme.colors.primary} />
+      <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
+        {t(labelKey)}: {value}
+      </Text>
+    </View>
+  );
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Image source={attraction.image} style={styles.headerImage} />
       
       <View style={styles.content}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          {attraction.name}
-        </Text>
+        <TranslatedText textKey={attraction.name} style={[styles.title, { color: theme.colors.text }]} />
 
-        <View style={styles.locationRow}>
+        <TouchableOpacity 
+          style={styles.locationRow}
+          onPress={() => navigation.navigate('Map', { selectedAttractions: [attraction.id] })}
+        >
           <Ionicons name="location" size={16} color={theme.colors.primary} />
           <Text style={[styles.location, { color: theme.colors.textSecondary }]}>
             {attraction.location}
           </Text>
+        </TouchableOpacity>
+
+        {/* --- СЕКЦИЯ С ОПИСАНИЕМ --- */}
+        <View style={[styles.descriptionCard, { backgroundColor: theme.colors.cardBackground }]}>
+          <TranslatedText textKey={attraction.description} style={[styles.description, { color: theme.colors.text }]} />
         </View>
 
-        {/* Рейтинг и базовая информация */}
-        {attraction.rating && (
-          <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
+        {/* --- ОБЪЕДИНЕННАЯ СЕКЦИЯ РЕЙТИНГА И ИНФОРМАЦИИ --- */}
+        <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
+          {/* Рейтинг из Google Places API, если есть, иначе локальный */}
+          {placeDetails?.rating ? (
             <View style={styles.ratingRow}>
               <View style={styles.ratingContainer}>
+                <Text style={[styles.ratingText, { color: theme.colors.text, fontSize: 18, marginRight: 8 }]}>{placeDetails.rating.toFixed(1)}</Text>
+                <View style={styles.starsContainer}>
+                  {renderStars(placeDetails.rating)}
+                </View>
+              </View>
+              {placeDetails.user_ratings_total && (
+                <Text style={{ color: theme.colors.textSecondary }}>
+                  ({placeDetails.user_ratings_total} {t('common.reviews')})
+                </Text>
+              )}
+            </View>
+          ) : attraction.rating ? (
+            <View style={styles.ratingRow}>
+               <View style={styles.ratingContainer}>
+                <Text style={[styles.ratingText, { color: theme.colors.text, marginRight: 8 }]}>{attraction.rating}/5</Text>
                 <View style={styles.starsContainer}>
                   {renderStars(attraction.rating)}
                 </View>
-                <Text style={[styles.ratingText, { color: theme.colors.text }]}>
-                  {attraction.rating}/5
-                </Text>
               </View>
-              {attraction.visitDuration && (
-                <View style={styles.durationContainer}>
-                  <Ionicons name="time" size={16} color={theme.colors.primary} />
-                  <Text style={[styles.durationText, { color: theme.colors.textSecondary }]}>
-                    {attraction.visitDuration}
-                  </Text>
-                </View>
-              )}
             </View>
+          ) : null}
+          
+          {attraction.visitDuration && (
+            <View style={[styles.durationContainer, { marginTop: placeDetails?.rating || attraction.rating ? 10 : 0 }]}>
+              <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
+              <Text style={[styles.durationText, { color: theme.colors.textSecondary }]}>
+                {attraction.visitDuration}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* --- Секция Google Places API (Фото и Отзывы) --- */}
+        {loadingDetails && <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }} />}
+        
+        {placeDetails && (
+          <View>
+            {/* Фотографии */}
+            {placeDetails.photos && placeDetails.photos.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  {t('common.photos')}
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosContainer}>
+                  {placeDetails.photos.slice(0, 5).map((photo, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${GoogleAPIService.apiKey}` }}
+                      style={styles.placeImage}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Отзывы */}
+            {placeDetails.reviews && placeDetails.reviews.length > 0 && (
+              <View style={styles.section}>
+                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+                  {t('common.reviewsTitle')}
+                </Text>
+                <View style={styles.reviewsContainer}>
+                  {placeDetails.reviews.slice(0, 2).map((review, index) => (
+                    <View key={index} style={[styles.reviewItem, { backgroundColor: theme.colors.cardBackground, borderLeftColor: theme.colors.primary }]}>
+                      <View style={styles.reviewHeader}>
+                        <Image source={{ uri: review.profile_photo_url }} style={styles.authorImage} />
+                        <View>
+                          <Text style={[styles.reviewAuthor, { color: theme.colors.text }]}>{review.author_name}</Text>
+                          <Text style={{ color: theme.colors.textSecondary }}>{review.relative_time_description}</Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.reviewText, { color: theme.colors.textSecondary }]}>{review.text}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         )}
-
-        <Text style={[styles.description, { color: theme.colors.textSecondary }]}>
-          {attraction.description}
-        </Text>
 
         {/* Историческая справка */}
         {attraction.historicalInfo && (
@@ -162,7 +320,7 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
         {(attraction.bestTimeToVisit || attraction.accessibility) && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Полезная информация
+              {t('screens.attractionDetail.usefulInfoTitle')}
             </Text>
             <View style={[styles.infoGrid, { backgroundColor: theme.colors.cardBackground }]}>
               {attraction.bestTimeToVisit && (
@@ -274,6 +432,15 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
           <Ionicons name="map" size={20} color="#FFFFFF" />
           <Text style={styles.mapButtonText}>{t('common.showOnMap')}</Text>
         </TouchableOpacity>
+
+        {/* Кнопка "Маршрут" */}
+        <TouchableOpacity 
+          style={[styles.mapButton, { backgroundColor: theme.colors.secondary, marginTop: 10 }]}
+          onPress={handleGetDirections}
+        >
+          <Ionicons name="navigate" size={20} color="#FFFFFF" />
+          <Text style={styles.mapButtonText}>{t('screens.attractionDetail.getDirections')}</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -306,16 +473,17 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 14,
     fontStyle: 'italic',
+    textDecorationLine: 'underline',
+  },
+  descriptionCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
   infoCard: {
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -345,7 +513,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 24,
   },
   section: {
     marginBottom: 24,
@@ -362,11 +529,6 @@ const styles = StyleSheet.create({
   workingHoursCard: {
     borderRadius: 12,
     padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   workingHoursRow: {
     flexDirection: 'row',
@@ -383,11 +545,6 @@ const styles = StyleSheet.create({
   infoGrid: {
     borderRadius: 12,
     padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   infoItem: {
     flexDirection: 'row',
@@ -410,11 +567,6 @@ const styles = StyleSheet.create({
   tipsContainer: {
     borderRadius: 12,
     padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   tipItem: {
     flexDirection: 'row',
@@ -430,11 +582,6 @@ const styles = StyleSheet.create({
   contactsCard: {
     borderRadius: 12,
     padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   contactItem: {
     flexDirection: 'row',
@@ -456,11 +603,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginTop: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   mapButtonText: {
     color: '#FFFFFF',
@@ -468,4 +610,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoText: {
+    marginLeft: 12,
+    fontSize: 14,
+  },
+  placesSection: {
+    marginTop: 0,
+  },
+  photosContainer: {
+    marginTop: 0,
+  },
+  placeImage: {
+    width: 150,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  reviewsContainer: {
+    marginTop: 0,
+  },
+  reviewItem: {
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  authorImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  reviewAuthor: {
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  reviewText: {
+    fontStyle: 'italic',
+    fontSize: 14,
+    lineHeight: 20,
+  }
 }); 

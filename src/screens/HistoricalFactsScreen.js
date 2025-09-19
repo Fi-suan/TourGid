@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 
 const HISTORICAL_FACTS = [
   {
@@ -29,22 +29,6 @@ const HISTORICAL_FACTS = [
     description: 'historicalFacts.cityStatus.description',
     fullDescription: 'historicalFacts.cityStatus.fullDescription',
     image: require('../assets/historical/pavlodar-city.jpeg')
-  },
-  {
-    id: '3',
-    year: '1954-1955',
-    title: 'historicalFacts.virginLands.title',
-    description: 'historicalFacts.virginLands.description',
-    fullDescription: 'historicalFacts.virginLands.fullDescription',
-    image: require('../assets/toktamys-mausoleum.jpg')
-  },
-  {
-    id: '4',
-    year: '1960-1980',
-    title: 'historicalFacts.industrialDevelopment.title',
-    description: 'historicalFacts.industrialDevelopment.description',
-    fullDescription: 'historicalFacts.industrialDevelopment.fullDescription',
-    image: require('../assets/jasybai-resort.jpg')
   }
 ];
 
@@ -53,7 +37,8 @@ export const HistoricalFactsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   
   const { theme } = useTheme();
-  const { t } = useTranslation();
+
+  const t = (key, params) => TranslationService.translate(key, params);
 
   const openFactDetails = (fact) => {
     setSelectedFact(fact);
@@ -128,11 +113,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   factImage: {
     width: '100%',
@@ -187,11 +167,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 20,
     padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   modalImage: {
     width: '100%',

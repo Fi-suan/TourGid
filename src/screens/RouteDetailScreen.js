@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ATTRACTIONS } from '../constants/data.js'; 
 
 export const RouteDetailScreen = ({ route, navigation }) => {
   const { route: routeData } = route.params;
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
 
   // Получаем достопримечательности по их ID
   const getAttractions = () => {
@@ -33,30 +33,30 @@ export const RouteDetailScreen = ({ route, navigation }) => {
 
         <ScrollView style={styles.scrollContent}>
           <Text style={[styles.title, { color: theme.colors.text }]}>
-            {routeData.name}
+            {t(routeData.name)}
           </Text>
 
           <View style={styles.typeContainer}>
             <View style={styles.typeItem}>
               <Icon name="time-outline" size={20} color="#3B82F6" />
-              <Text style={styles.typeText}>{routeData.duration}</Text>
+              <Text style={styles.typeText}>{t(routeData.duration)}</Text>
             </View>
             <View style={styles.typeItem}>
               <Icon name="footsteps-outline" size={20} color="#3B82F6" />
-              <Text style={styles.typeText}>{routeData.difficulty}</Text>
+              <Text style={styles.typeText}>{t(`difficulty.${routeData.difficulty.toLowerCase()}`)}</Text>
             </View>
             <View style={styles.typeItem}>
               <Icon name="car-outline" size={20} color="#3B82F6" />
-              <Text style={styles.typeText}>{routeData.recommendedTransport}</Text>
+              <Text style={styles.typeText}>{t(`transport.${routeData.recommendedTransport.toLowerCase().replace(/\//g, '_')}`)}</Text>
             </View>
           </View>
 
           <Text style={[styles.description, { color: theme.colors.textSecondary }]}>
-            {routeData.description}
+            {t(routeData.description)}
           </Text>
 
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Достопримечательности
+            {t('routes.attractionsTitle')}
           </Text>
 
           {attractions.map((attraction, index) => (
@@ -73,7 +73,7 @@ export const RouteDetailScreen = ({ route, navigation }) => {
               )}
               <View style={styles.attractionInfo}>
                 <Text style={[styles.attractionName, { color: theme.colors.text }]}>
-                  {attraction.name}
+                  {t(attraction.name)}
                 </Text>
                 <Text style={[styles.attractionLocation, { color: theme.colors.textSecondary }]}>
                   {attraction.location}
@@ -83,24 +83,24 @@ export const RouteDetailScreen = ({ route, navigation }) => {
           ))}
 
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Советы
+            {t('routes.tipsTitle')}
           </Text>
 
           {routeData.tips.map((tip, index) => (
             <View key={index} style={styles.tipItem}>
               <Icon name="checkmark-circle" size={20} color="#10B981" style={styles.tipIcon} />
-              <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{tip}</Text>
+              <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{t(tip)}</Text>
             </View>
           ))}
 
           <TouchableOpacity 
             style={styles.startButton}
             onPress={() => {
-              navigation.navigate('Map', { selectedAttractions: routeData.attractions });
+              navigation.navigate('Map', { selectedRoute: routeData.id });
             }}
           >
             <Icon name="paper-plane" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-            <Text style={styles.buttonText}>Начать маршрут</Text>
+            <Text style={styles.buttonText}>{t('routes.startRouteButton')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>

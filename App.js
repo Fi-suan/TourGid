@@ -8,19 +8,18 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { RegionInfoScreen } from './src/screens/RegionInfoScreen';
 import { MapScreen } from './src/screens/MapScreen';
 import { ThemeProvider } from './src/context/ThemeContext';
-import { LanguageProvider } from './src/context/LanguageContext';
-import './src/i18n';
-import { useTranslation } from 'react-i18next';
+import { LanguageProvider, useLanguage } from './src/context/LanguageContext';
+import TranslationService from './src/services/TranslationService';
 import { RoutesScreen } from './src/screens/RoutesScreen';
 import { RouteDetailScreen } from './src/screens/RouteDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
 function AppContent() {
-  const { t } = useTranslation();
-  
+  const { language } = useLanguage();
+
   return (
-    <NavigationContainer>
+    <NavigationContainer key={language}>
       <Stack.Navigator
         screenOptions={({ route }) => ({
           headerBackTitle: '',
@@ -35,38 +34,38 @@ function AppContent() {
           name="AttractionDetail" 
           component={AttractionDetailScreen}
           options={({ route }) => ({ 
-            title: route.params?.attraction?.name || t('screens.attractionDetail.title')
+            title: route.params?.attraction?.name || TranslationService.translate('screens.attractionDetail.title')
           })}
         />
         <Stack.Screen 
           name="HistoricalFacts" 
           component={HistoricalFactsScreen}
-          options={{ title: t('screens.historicalFacts.title') }}
+          options={{ title: TranslationService.translate('screens.historicalFacts.title') }}
         />
         <Stack.Screen 
           name="Settings" 
           component={SettingsScreen}
-          options={{ title: t('screens.settings.title') }}
+          options={{ title: TranslationService.translate('screens.settings.title') }}
         />
         <Stack.Screen 
           name="RegionInfo" 
           component={RegionInfoScreen}
-          options={{ title: t('screens.regionInfo.title') }}
+          options={{ title: TranslationService.translate('screens.regionInfo.title') }}
         />
         <Stack.Screen 
           name="Map" 
           component={MapScreen}
-          options={{ title: t('screens.map.title') }}
+          options={{ title: TranslationService.translate('screens.map.title') }}
         />
         <Stack.Screen 
           name="Routes" 
           component={RoutesScreen}
-          options={{ title: t('menuItems.routes') }}
+          options={{ title: TranslationService.translate('screens.routes.title') }}
         />
         <Stack.Screen 
           name="RouteDetail" 
           component={RouteDetailScreen}
-          options={{ title: t('Маршруты') }}
+          options={{ title: TranslationService.translate('screens.routeDetail.title') }}
         />
       </Stack.Navigator>
     </NavigationContainer>

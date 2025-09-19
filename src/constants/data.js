@@ -1,20 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-// Регионы - только Астана и Павлодар
+// Регионы - только Павлодар
 export const REGIONS = [
-  {
-    id: 'astana',
-    name: 'Астана',
-    nameEn: 'Astana',
-    nameKz: 'Астана',
-    coordinates: { latitude: 51.1694, longitude: 71.4491 },
-    description: 'Столица Казахстана с современной архитектурой и культурными достопримечательностями',
-    population: '1,350,000',
-    founded: '1830 (как Акмолинск)',
-    climate: 'Резко континентальный',
-    mainCity: 'Астана',
-    attractions_count: 8
-  },
   {
     id: 'pavlodar',
     name: 'Павлодарская область',
@@ -30,134 +17,12 @@ export const REGIONS = [
   }
 ];
 
-// Достопримечательности Астаны
+// Достопримечательности Павлодара
 export const ATTRACTIONS = [
-  // АСТАНА
-  {
-    id: 'ast001',
-    name: 'Байтерек',
-    description: 'Символ Астаны - башня высотой 97 метров с обзорной площадкой',
-    location: 'Проспект Нурсултан Назарбаев',
-    regionId: 'astana',
-    image: require('../assets/astana/baiterek.jpg'),
-    categories: ['architecture', 'scenic', 'unique'],
-    workingHours: { 
-      weekdays: '10:00 - 22:00', 
-      weekend: '10:00 - 22:00', 
-      dayOff: null 
-    },
-    contacts: { 
-      phone: '+7 (7172) 44-66-44', 
-      address: 'Проспект Нурсултан Назарбаев',
-      website: 'www.baiterek.kz'
-    },
-    coordinates: { latitude: 51.1283, longitude: 71.4306 },
-    historicalInfo: 'Башня Байтерек построена в 2002 году как символ переноса столицы. Высота 97 метров символизирует 1997 год - год переноса столицы в Астану.',
-    tips: [
-      'Лучший вид на город с высоты 86 метров',
-      'Приходите на закате для красивых фото',
-      'Есть отпечаток руки Президента'
-    ],
-    rating: 4.8,
-    visitDuration: '45-60 минут',
-    bestTimeToVisit: 'Вечером на закате',
-    accessibility: 'Доступен для людей с ограниченными возможностями'
-  },
-  {
-    id: 'ast002',
-    name: 'Хан Шатыр',
-    description: 'Крупнейший в мире шатер - торгово-развлекательный центр',
-    location: 'Проспект Туран, 37',
-    regionId: 'astana',
-    image: require('../assets/astana/khan-shatyr.jpg'),
-    categories: ['architecture', 'entertainment', 'shopping', 'unique'],
-    workingHours: { 
-      weekdays: '10:00 - 22:00', 
-      weekend: '10:00 - 23:00', 
-      dayOff: null 
-    },
-    contacts: { 
-      phone: '+7 (7172) 44-44-44', 
-      address: 'Проспект Туран, 37',
-      website: 'www.khanshatyr.kz'
-    },
-    coordinates: { latitude: 51.1326, longitude: 71.4064 },
-    historicalInfo: 'Открыт в 2010 году, спроектирован британским архитектором Норманом Фостером. Высота 150 метров, внутри поддерживается тропический климат.',
-    tips: [
-      'Внутри пляжный курорт с песком с Мальдив',
-      'Монорельс до верхнего этажа',
-      'Более 200 магазинов'
-    ],
-    rating: 4.6,
-    visitDuration: '2-4 часа',
-    bestTimeToVisit: 'В любое время года',
-    accessibility: 'Полностью доступен'
-  },
-  {
-    id: 'ast003',
-    name: 'Мечеть Нур-Астана',
-    description: 'Главная мечеть столицы, одна из крупнейших в Центральной Азии',
-    location: 'Проспект Абая, 10',
-    regionId: 'astana',
-    image: require('../assets/astana/nur-astana-mosque.jpg'),
-    categories: ['religion', 'architecture', 'culture'],
-    workingHours: { 
-      weekdays: '05:00 - 23:00', 
-      weekend: '05:00 - 23:00', 
-      dayOff: null 
-    },
-    contacts: { 
-      phone: '+7 (7172) 32-32-32', 
-      address: 'Проспект Абая, 10'
-    },
-    coordinates: { latitude: 51.1801, longitude: 71.4460 },
-    historicalInfo: 'Построена в 2005 году, может вместить 5000 верующих. Подарок эмира Катара.',
-    tips: [
-      'Соблюдайте дресс-код',
-      'Экскурсии на казахском и русском языках',
-      'Красивая архитектура в исламском стиле'
-    ],
-    rating: 4.7,
-    visitDuration: '30-45 минут',
-    bestTimeToVisit: 'После полуденной молитвы',
-    accessibility: 'Доступен для людей с ограниченными возможностями'
-  },
-  {
-    id: 'ast004',
-    name: 'Национальный музей Республики Казахстан',
-    description: 'Крупнейший музей страны с уникальными экспозициями',
-    location: 'Площадь Независимости, 54',
-    regionId: 'astana',
-    image: require('../assets/astana/national-museum-astana.jpg'),
-    categories: ['culture', 'history', 'education'],
-    workingHours: { 
-      weekdays: '10:00 - 19:00', 
-      weekend: '10:00 - 20:00', 
-      dayOff: 'Понедельник' 
-    },
-    contacts: { 
-      phone: '+7 (7172) 91-98-98', 
-      address: 'Площадь Независимости, 54',
-      website: 'www.nationalmuseum.kz'
-    },
-    coordinates: { latitude: 51.1278, longitude: 71.4691 },
-    historicalInfo: 'Открыт в 2014 году, самый большой музей Центральной Азии. Содержит экспонаты от древности до современности.',
-    tips: [
-      'Выделите целый день на посещение',
-      'Золотой человек - главный экспонат',
-      'Есть интерактивные залы'
-    ],
-    rating: 4.5,
-    visitDuration: '2-4 часа',
-    bestTimeToVisit: 'В выходные дни',
-    accessibility: 'Полностью доступен'
-  },
-  
-  // ПАВЛОДАР (оставляем существующие, но обновляем изображения)
   {
     id: 'pvl001',
-    name: 'Мечеть Машхур Жусупа',
-    description: 'Главная соборная мечеть Павлодара, построенная в честь великого казахского просветителя',
+    name: 'attractions.mashkhurZhusupMosque.name',
+    description: 'attractions.mashkhurZhusupMosque.description',
     location: 'ул. Академика Сатпаева, 30',
     regionId: 'pavlodar', 
     image: require('../assets/pavlodar/mashkhur-zhusup-mosque.jpg'),
@@ -185,8 +50,8 @@ export const ATTRACTIONS = [
   },
   {
     id: 'pvl002',
-    name: 'Благовещенский собор',
-    description: 'Православный кафедральный собор - архитектурная жемчужина Павлодара',
+    name: 'attractions.blagoveshchenskyCathedral.name',
+    description: 'attractions.blagoveshchenskyCathedral.description',
     location: 'ул. Кутузова, 4',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/blagoveshchensky-cathedral.jpg'),
@@ -215,8 +80,8 @@ export const ATTRACTIONS = [
   },
   {
     id: 'pvl003',
-    name: 'Набережная реки Иртыш',
-    description: 'Главная прогулочная зона города с красивыми видами на реку',
+    name: 'attractions.irtyshEmbankment.name',
+    description: 'attractions.irtyshEmbankment.description',
     location: 'Набережная им. Габита Мусрепова',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/irtysh-embankment.jpg'),
@@ -230,7 +95,7 @@ export const ATTRACTIONS = [
       phone: '+7 (7182) 55-12-00', 
       address: 'Набережная им. Габита Мусрепова'
     },
-    coordinates: { latitude: 52.2900, longitude: 76.9600 },
+    coordinates: { latitude: 52.3025, longitude: 76.9630 },
     historicalInfo: 'Набережная благоустроена в 2000-х годах. Иртыш - одна из крупнейших рек Азии.',
     tips: [
       'Лучшие фото на закате',
@@ -244,8 +109,8 @@ export const ATTRACTIONS = [
   },
   {
     id: 'pvl004',
-    name: 'Дом-музей Павла Васильева',
-    description: 'Мемориальный музей знаменитого поэта, уроженца Павлодара',
+    name: 'attractions.pavelVasilievHouseMuseum.name',
+    description: 'attractions.pavelVasilievHouseMuseum.description',
     location: 'ул. Павла Васильева, 78',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/vasiliev-house-museum.jpg'),
@@ -274,8 +139,8 @@ export const ATTRACTIONS = [
   },
   {
     id: 'pvl005',
-    name: 'Областной краеведческий музей',
-    description: 'Главный музей региона с богатой коллекцией по истории и природе Прииртышья',
+    name: 'attractions.regionalMuseumOfLocalLore.name',
+    description: 'attractions.regionalMuseumOfLocalLore.description',
     location: 'ул. Академика Сатпаева, 40',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
@@ -303,9 +168,97 @@ export const ATTRACTIONS = [
     accessibility: 'Доступен для людей с ограниченными возможностями'
   },
   {
+    id: 'pvl006',
+    name: 'attractions.chekhovTheater.name',
+    description: 'attractions.chekhovTheater.description',
+    location: 'ул. Ленина, 44',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/chekhov-theater.jpg'),
+    categories: ['culture', 'entertainment', 'architecture'],
+    workingHours: { 
+      weekdays: '10:00 - 19:00', 
+      weekend: '10:00 - 19:00', 
+      dayOff: 'Понедельник' 
+    },
+    contacts: { 
+      phone: '+7 (7182) 32-33-44', 
+      address: 'ул. Ленина, 44',
+      website: 'chekhov-theater.kz'
+    },
+    coordinates: { latitude: 52.2880, longitude: 76.9520 },
+    historicalInfo: 'Основан в 1964 году. Носит имя великого русского драматурга А.П. Чехова.',
+    tips: [
+      'Билеты можно купить онлайн',
+      'Есть спектакли на казахском и русском языках',
+      'Действует система скидок для студентов'
+    ],
+    rating: 4.5,
+    visitDuration: '2-3 часа',
+    bestTimeToVisit: 'Вечером на спектакль',
+    accessibility: 'Доступен для людей с ограниченными возможностями'
+  },
+  {
+    id: 'pvl007',
+    name: 'attractions.musicCollege.name',
+    description: 'attractions.musicCollege.description',
+    location: 'ул. Толстого, 46',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/music-college.jpg'),
+    categories: ['culture', 'education', 'architecture'],
+    workingHours: { 
+      weekdays: '08:00 - 18:00', 
+      weekend: '10:00 - 16:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7182) 61-45-67', 
+      address: 'ул. Толстого, 46'
+    },
+    coordinates: { latitude: 52.2840, longitude: 76.9480 },
+    historicalInfo: 'Основан в 1967 году для подготовки музыкальных кадров региона.',
+    tips: [
+      'Регулярно проходят концерты студентов',
+      'Можно посетить мастер-классы',
+      'Красивая архитектура советского периода'
+    ],
+    rating: 4.2,
+    visitDuration: '1-2 часа',
+    bestTimeToVisit: 'Во время концертов',
+    accessibility: 'Частично доступен'
+  },
+  {
+    id: 'pvl008',
+    name: 'attractions.jasybaiResort.name',
+    description: 'attractions.jasybaiResort.description',
+    location: 'п. Жасыбай, 70 км от Павлодара',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/jasybai-resort.jpg'),
+    categories: ['nature', 'recreation', 'health'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7182) 45-67-89', 
+      address: 'п. Жасыбай'
+    },
+    coordinates: { latitude: 52.1500, longitude: 76.8000 },
+    historicalInfo: 'Популярное место отдыха с минеральными источниками.',
+    tips: [
+      'Можно остановиться в санатории',
+      'Лечебные грязи и минеральная вода',
+      'Лучше приезжать на 2-3 дня'
+    ],
+    rating: 4.3,
+    visitDuration: '1-3 дня',
+    bestTimeToVisit: 'Летом',
+    accessibility: 'Доступен для людей с ограниченными возможностями'
+  },
+  {
     id: 'pvl009',
-    name: 'Баянаульский национальный парк',
-    description: 'Первый национальный парк Казахстана с уникальной природой',
+    name: 'attractions.bayanaulNationalPark.name',
+    description: 'attractions.bayanaulNationalPark.description',
     location: 'Баянаульский район, 100 км от Павлодара',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/bayanaul-park.jpg'),
@@ -331,56 +284,147 @@ export const ATTRACTIONS = [
     visitDuration: '1-3 дня',
     bestTimeToVisit: 'Май-сентябь',
     accessibility: 'Требуется хорошая физическая подготовка'
+  },
+  {
+    id: 'pvl010',
+    name: 'attractions.kyzyltauReserve.name',
+    description: 'attractions.kyzyltauReserve.description',
+    location: 'Кызылтауский заказник, 80 км от Павлодара',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/kyzyltau-reserve.jpg'),
+    categories: ['nature', 'adventure', 'scenic'],
+    workingHours: { 
+      weekdays: '08:00 - 20:00', 
+      weekend: '08:00 - 20:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7182) 55-44-33', 
+      address: 'Кызылтауский заказник'
+    },
+    coordinates: { latitude: 52.4000, longitude: 76.2000 },
+    historicalInfo: 'Государственный природный заказник, основанный для охраны степной фауны.',
+    tips: [
+      'Нужно разрешение для посещения',
+      'Отличное место для бёрдвотчинга',
+      'Захватите бинокль и фотоаппарат'
+    ],
+    rating: 4.1,
+    visitDuration: '4-6 часов',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется хорошая физическая подготовка'
+  },
+  {
+    id: 'pvl011',
+    name: 'attractions.sabyndykolLake.name',
+    description: 'attractions.sabyndykolLake.description',
+    location: '45 км к юго-востоку от Павлодара',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/sabyndykol-lake.jpg'),
+    categories: ['nature', 'recreation', 'scenic'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'озеро Сабындыкуль'
+    },
+    coordinates: { latitude: 52.1800, longitude: 77.1200 },
+    historicalInfo: 'Соленое озеро с лечебными свойствами.',
+    tips: [
+      'Вода очень соленая - легко плавать',
+      'Грязи озера имеют лечебные свойства',
+      'Лучше ехать на своем транспорте'
+    ],
+    rating: 4.0,
+    visitDuration: '2-4 часа',
+    bestTimeToVisit: 'Летом',
+    accessibility: 'Частично доступно'
+  },
+  {
+    id: 'pvl012',
+    name: 'attractions.toktamysMausoleum.name',
+    description: 'attractions.toktamysMausoleum.description',
+    location: 'село Кызылжар, 60 км от Павлодара',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/toktamys-mausoleum.jpg'),
+    categories: ['history', 'architecture', 'culture'],
+    workingHours: { 
+      weekdays: '09:00 - 18:00', 
+      weekend: '09:00 - 18:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7182) 44-55-66', 
+      address: 'село Кызылжар'
+    },
+    coordinates: { latitude: 52.1200, longitude: 76.7800 },
+    historicalInfo: 'Мавзолей XIV века, памятник золотоордынской архитектуры.',
+    tips: [
+      'Уникальный образец средневековой архитектуры',
+      'Экскурсии проводятся по предварительной записи',
+      'Интересна история хана Токтамыша'
+    ],
+    rating: 4.4,
+    visitDuration: '1-2 часа',
+    bestTimeToVisit: 'В хорошую погоду',
+    accessibility: 'Частично доступен'
+  },
+  {
+    id: 'pvl013',
+    name: 'attractions.myrzashoky.name',
+    description: 'attractions.myrzashoky.description',
+    location: 'Аккулинский район, 90 км от Павлодара',
+    regionId: 'pavlodar',
+    image: require('../assets/pavlodar/myrzashoky.jpg'),
+    categories: ['history', 'culture', 'unique'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'Аккулинский район'
+    },
+    coordinates: { latitude: 51.9500, longitude: 76.5000 },
+    historicalInfo: 'Древнее городище, археологический памятник X-XIV веков.',
+    tips: [
+      'Нужен гид для полноценной экскурсии',
+      'Захватите воду и головной убор',
+      'Интересно для любителей истории'
+    ],
+    rating: 3.8,
+    visitDuration: '2-3 часа',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется хорошая физическая подготовка'
   }
 ];
 
 // Интересы для фильтрации
 export const INTERESTS = [
-  { id: 'religion', name: 'Религия', icon: 'moon' },
-  { id: 'history', name: 'История', icon: 'book' },
-  { id: 'culture', name: 'Культура', icon: 'color-palette' },
-  { id: 'nature', name: 'Природа', icon: 'leaf' },
-  { id: 'architecture', name: 'Архитектура', icon: 'business' },
-  { id: 'recreation', name: 'Отдых', icon: 'happy' },
-  { id: 'entertainment', name: 'Развлечения', icon: 'game-controller' },
-  { id: 'scenic', name: 'Живописные места', icon: 'camera' },
-  { id: 'unique', name: 'Уникальные места', icon: 'star' },
-  { id: 'adventure', name: 'Приключения', icon: 'trail-sign' },
-  { id: 'shopping', name: 'Шопинг', icon: 'bag' },
-  { id: 'education', name: 'Образование', icon: 'school' }
+  { id: 'religion', name: 'interests.religion', icon: 'moon' },
+  { id: 'history', name: 'interests.history', icon: 'book' },
+  { id: 'culture', name: 'interests.culture', icon: 'color-palette' },
+  { id: 'nature', name: 'interests.nature', icon: 'leaf' },
+  { id: 'architecture', name: 'interests.architecture', icon: 'business' },
+  { id: 'recreation', name: 'interests.recreation', icon: 'happy' },
+  { id: 'entertainment', name: 'interests.entertainment', icon: 'game-controller' },
+  { id: 'scenic', name: 'interests.scenic', icon: 'camera' },
+  { id: 'unique', name: 'interests.unique', icon: 'star' },
+  { id: 'adventure', name: 'interests.adventure', icon: 'trail-sign' },
+  { id: 'shopping', name: 'interests.shopping', icon: 'bag' },
+  { id: 'education', name: 'interests.education', icon: 'school' }
 ];
 
-// Маршруты для двух городов
+// Маршруты для Павлодара
 export const ROUTES = [
-  // АСТАНА
-  {
-    id: 'ast_route_1',
-    name: 'Символы столицы',
-    description: 'Знаковые достопримечательности Астаны за один день',
-    duration: '4-5 часов',
-    difficulty: 'Лёгкий',
-    regionId: 'astana',
-    attractions: ['ast001', 'ast002', 'ast003'], // Байтерек, Хан Шатыр, мечеть
-    recommendedTransport: 'Автобус/Такси',
-    distance: '15 км',
-    estimatedCost: '1000-2000 тенге',
-    tips: [
-      'Начните с Байтерека утром',
-      'В Хан Шатыре можно пообедать',
-      'Посетите мечеть после обеда'
-    ],
-    highlights: [
-      'Панорамный вид с Байтерека',
-      'Уникальная архитектура Хан Шатыра',
-      'Духовная атмосфера мечети'
-    ]
-  },
-  
-  // ПАВЛОДАР  
   {
     id: 'pvl_route_1',
-    name: 'Культурное наследие Павлодара',
-    description: 'Музеи и исторические места Павлодара',
+    name: 'routes.culturalHeritageOfPavlodar.name',
+    description: 'routes.culturalHeritageOfPavlodar.description',
     duration: '5-6 часов',
     difficulty: 'Средний',
     regionId: 'pavlodar',
@@ -401,8 +445,8 @@ export const ROUTES = [
   },
   {
     id: 'pvl_route_2',
-    name: 'Природа Прииртышья',
-    description: 'Набережная Иртыша и Баянаульский парк',
+    name: 'routes.natureOfIrtyshRegion.name',
+    description: 'routes.natureOfIrtyshRegion.description',
     duration: '1-2 дня',
     difficulty: 'Средний',
     regionId: 'pavlodar',
@@ -424,16 +468,6 @@ export const ROUTES = [
 ];
 
 // Стили остаются прежними
-const historicalTheme = {
-  colors: {
-    primary: '#8B4513',
-    secondary: '#DAA520', 
-    background: '#FFF8DC',
-    text: '#463E3F',
-    accent: '#800000'
-  }
-};
-
 const typography = {
   headings: {
     fontFamily: 'Playfair Display',
@@ -444,27 +478,4 @@ const typography = {
     fontSize: 16,
     lineHeight: 24
   }
-};
-
-const historicalStyles = StyleSheet.create({
-  card: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#8B4513',
-    backgroundColor: '#FFF8DC',
-    padding: 16,
-    marginVertical: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3
-  },
-  oldPaper: {
-    backgroundColor: '#FFF8DC',
-    borderRadius: 0,
-    borderWidth: 2,
-    borderColor: '#8B4513',
-    padding: 20,
-    margin: 10
-  }
-}); 
+}; 

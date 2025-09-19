@@ -1,14 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 
 export const SettingsScreen = () => {
   const { theme, isDark, toggleTheme } = useTheme();
   const { language, changeLanguage } = useLanguage();
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -17,7 +17,7 @@ export const SettingsScreen = () => {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           {t('screens.settings.languageSection')}
@@ -64,7 +64,7 @@ export const SettingsScreen = () => {
           />
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

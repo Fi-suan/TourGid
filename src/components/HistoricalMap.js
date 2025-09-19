@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Dimensions, ActivityIndicator, View, Text, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Dimensions, ActivityIndicator, View, Text, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Polyline, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { useTranslation } from 'react-i18next';
+import TranslationService from '../services/TranslationService';
 import { 
   getDirectionsFromGoogle, 
   getRouteToAttraction, 
@@ -20,11 +20,12 @@ export const HistoricalMap = ({
   onMarkerPress, 
   showRoute = false,
   aiRoute = null,
-  isAIRoute = false
+  isAIRoute = false,
+  showMarkers = false
 }) => {
   const { theme } = useTheme();
   const mapRef = useRef(null);
-  const { t } = useTranslation();
+  const t = (key, params) => TranslationService.translate(key, params);
 
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [routeInfo, setRouteInfo] = useState(null);
@@ -35,7 +36,18 @@ export const HistoricalMap = ({
 
   // Обновление маршрута при изменении параметров
   useEffect(() => {
-    if (showRoute && attractions && attractions.length > 1) {
+    if (isAIRoute && aiRoute?.route?.coordinates) {
+      // Если это AI маршрут и координаты уже есть, просто отображаем их
+      console.log('Displaying pre-generated AI route...');
+      setRouteCoordinates(aiRoute.route.coordinates);
+      setRouteInfo({
+        distance: aiRoute.route.distance,
+        duration: aiRoute.route.duration,
+        isAI: true,
+        destination: aiRoute.destination.name
+      });
+      setIsLoadingRoute(false);
+    } else if (showRoute && attractions && attractions.length > 1) {
       generateRoute();
     } else if (isAIRoute && aiRoute) {
       generateAIRoute();
@@ -44,27 +56,62 @@ export const HistoricalMap = ({
     }
   }, [showRoute, attractions, aiRoute, isAIRoute, travelMode]);
 
-  // 🆕 Генерация маршрута через Google Directions API
+  // 🆕 Генерация маршрута через Google Directions API с использованием местоположения пользователя
   const generateRoute = async () => {
-    if (!attractions || attractions.length < 2) return;
+    if (!attractions || attractions.length < 1) return;
 
     setIsLoadingRoute(true);
     try {
-      // Берем первую точку как старт
-      const startPoint = attractions[0].coordinates;
-      const endPoint = attractions[attractions.length - 1].coordinates;
-      const waypoints = attractions.slice(1, -1).map(attr => attr.coordinates);
-
-      console.log('🗺️ Generating route with Google Directions...');
+      // Используем местоположение пользователя как стартовую точку, если доступно
+      let startPoint = userLocation;
+      if (!startPoint && attractions.length > 0) {
+        // Fallback на первую достопримечательность если местоположение недоступно
+        startPoint = attractions[0].coordinates;
+      }
       
+      let endPoint, waypoints;
+      
+      if (attractions.length === 1) {
+        // Если одна достопримечательность - маршрут от пользователя к ней
+        endPoint = attractions[0].coordinates;
+        waypoints = [];
+      } else {
+        // Если несколько достопримечательностей
+        if (userLocation) {
+          // От пользователя через все достопримечательности
+          endPoint = attractions[attractions.length - 1].coordinates;
+          waypoints = attractions.slice(0, -1).map(attr => attr.coordinates);
+        } else {
+          // Fallback: от первой до последней через промежуточные
+          startPoint = attractions[0].coordinates;
+          endPoint = attractions[attractions.length - 1].coordinates;
+          waypoints = attractions.slice(1, -1).map(attr => attr.coordinates);
+        }
+      }
+
+      console.log('🗺️ Generating route with Google Directions API...');
+      console.log('📍 Start:', startPoint);
+      console.log('📍 End:', endPoint);
+      console.log('📍 Waypoints:', waypoints.length);
+      
+      // Проверяем расстояние - если больше 50км, используем автомобильный режим
+      const totalDistance = calculateDistance(
+        startPoint.latitude, startPoint.longitude,
+        endPoint.latitude, endPoint.longitude
+      );
+      
+      const adjustedTravelMode = totalDistance > 50 ? 'DRIVING' : travelMode;
+      console.log(`📏 Distance: ${totalDistance.toFixed(1)}km, Mode: ${adjustedTravelMode}`);
+      
+      // Используем Google Directions API
       const routeResult = await getDirectionsFromGoogle(
         startPoint,
         endPoint,
         waypoints,
-        travelMode
+        adjustedTravelMode
       );
 
-      if (routeResult.success) {
+      if (routeResult && routeResult.success) {
         setRouteCoordinates(routeResult.route.coordinates);
         setRouteInfo({
           distance: routeResult.route.distance,
@@ -78,7 +125,7 @@ export const HistoricalMap = ({
         setRouteAnalysis(analysis);
 
         // Центрируем карту на маршрут
-        if (routeResult.route.bounds && mapRef.current) {
+        if (routeResult.route.coordinates && routeResult.route.coordinates.length > 1 && mapRef.current) {
           mapRef.current.fitToCoordinates(routeResult.route.coordinates, {
             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
             animated: true,
@@ -86,14 +133,13 @@ export const HistoricalMap = ({
         }
 
         console.log(`✅ Route generated: ${routeResult.route.distance.toFixed(1)}km, ${Math.round(routeResult.route.duration)}min`);
+      } else {
+        console.log('❌ Failed to generate route, using fallback');
+        generateFallbackRoute();
       }
     } catch (error) {
       console.error('Error generating route:', error);
-      Alert.alert(
-        'Ошибка маршрута',
-        'Не удалось построить маршрут. Используем прямые линии.',
-        [{ text: 'ОК' }]
-      );
+      console.log('❌ Route generation failed, using fallback');
       generateFallbackRoute();
     } finally {
       setIsLoadingRoute(false);
@@ -138,7 +184,8 @@ export const HistoricalMap = ({
 
         // Центрируем карту на AI маршрут
         if (routeResult.route.coordinates.length > 0 && mapRef.current) {
-          mapRef.current.fitToCoordinates(routeResult.route.coordinates, {
+          const allPoints = [startLocation, ...routeResult.route.coordinates];
+          mapRef.current.fitToCoordinates(allPoints, {
             edgePadding: { top: 100, right: 50, bottom: 200, left: 50 },
             animated: true,
           });
@@ -249,7 +296,7 @@ export const HistoricalMap = ({
       }
     }
 
-    Alert.alert('Детали маршрута', details.join('\n'), [{ text: 'ОК' }]);
+    console.log('📋 Route details:', details.join('\n'));
   };
 
   // Определение центра карты
@@ -298,8 +345,8 @@ export const HistoricalMap = ({
           }
         }}
       >
-        {/* Маркеры достопримечательностей */}
-        {attractions.map((attraction, index) => (
+        {/* Маркеры достопримечательностей - показываются только при showMarkers=true */}
+        {showMarkers && attractions.map((attraction, index) => (
           <Marker
             key={attraction.id}
             coordinate={attraction.coordinates}
@@ -319,7 +366,7 @@ export const HistoricalMap = ({
         {/* Линия маршрута */}
         {routeCoordinates.length > 0 && (
           <Polyline
-            coordinates={routeCoordinates}
+            coordinates={userLocation ? [userLocation, ...routeCoordinates] : routeCoordinates}
             strokeColor={isAIRoute ? '#FF6B35' : theme.colors.primary}
             strokeWidth={4}
             lineDashPattern={routeInfo?.isFallback ? [10, 5] : null}

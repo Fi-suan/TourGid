@@ -18,8 +18,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { getUserLocation, getRouteToAttraction } from '../utils/geoUtils';
 
 const { width } = Dimensions.get('window');
-
-// Компонент для отображения текста, который может загружаться асинхронно
 const TranslatedText = ({ textKey, style, params = {} }) => {
   const { language } = useLanguage();
   const [text, setText] = useState(textKey);
@@ -175,15 +173,10 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             {attraction.location}
           </Text>
         </TouchableOpacity>
-
-        {/* --- СЕКЦИЯ С ОПИСАНИЕМ --- */}
         <View style={[styles.descriptionCard, { backgroundColor: theme.colors.cardBackground }]}>
           <TranslatedText textKey={attraction.description} style={[styles.description, { color: theme.colors.text }]} />
         </View>
-
-        {/* --- ОБЪЕДИНЕННАЯ СЕКЦИЯ РЕЙТИНГА И ИНФОРМАЦИИ --- */}
         <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
-          {/* Рейтинг из Google Places API, если есть, иначе локальный */}
           {placeDetails?.rating ? (
             <View style={styles.ratingRow}>
               <View style={styles.ratingContainer}>
@@ -218,13 +211,10 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             </View>
           )}
         </View>
-
-        {/* --- Секция Google Places API (Фото и Отзывы) --- */}
         {loadingDetails && <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }} />}
         
         {placeDetails && (
           <View>
-            {/* Фотографии */}
             {placeDetails.photos && placeDetails.photos.length > 0 && (
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -241,8 +231,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
                 </ScrollView>
               </View>
             )}
-
-            {/* Отзывы */}
             {placeDetails.reviews && placeDetails.reviews.length > 0 && (
               <View style={styles.section}>
                  <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -266,8 +254,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             )}
           </View>
         )}
-
-        {/* Историческая справка */}
         {attraction.historicalInfo && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -278,8 +264,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             </Text>
           </View>
         )}
-
-        {/* Время работы */}
         {attraction.workingHours && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -315,8 +299,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
-
-        {/* Дополнительная информация */}
         {(attraction.bestTimeToVisit || attraction.accessibility) && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -352,8 +334,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
-
-        {/* Советы */}
         {attraction.tips && attraction.tips.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -371,8 +351,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
-
-        {/* Контакты */}
         {attraction.contacts && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -423,8 +401,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
-
-        {/* Кнопка показать на карте */}
         <TouchableOpacity 
           style={[styles.mapButton, { backgroundColor: theme.colors.primary }]}
           onPress={() => navigation.navigate('Map', { selectedAttractions: [attraction.id] })}
@@ -432,8 +408,6 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
           <Ionicons name="map" size={20} color="#FFFFFF" />
           <Text style={styles.mapButtonText}>{t('common.showOnMap')}</Text>
         </TouchableOpacity>
-
-        {/* Кнопка "Маршрут" */}
         <TouchableOpacity 
           style={[styles.mapButton, { backgroundColor: theme.colors.secondary, marginTop: 10 }]}
           onPress={handleGetDirections}

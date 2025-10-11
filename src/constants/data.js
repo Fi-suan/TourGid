@@ -1,23 +1,78 @@
 import { StyleSheet } from 'react-native';
 
-// Регионы - только Павлодар
 export const REGIONS = [
   {
     id: 'pavlodar',
     name: 'Павлодарская область',
     nameEn: 'Pavlodar Region',
     nameKz: 'Павлодар облысы',
+    region: 'north',
     coordinates: { latitude: 52.3000, longitude: 76.9500 },
     description: 'Промышленный и культурный центр Северного Казахстана на берегу Иртыша',
     population: '750,000',
     founded: '1720 (как форпост Коряковский)',
     climate: 'Резко континентальный',
     mainCity: 'Павлодар',
+    attractions_count: 13
+  },
+  {
+    id: 'ust-kamenogorsk',
+    name: 'Восточно-Казахстанская область',
+    nameEn: 'East Kazakhstan Region',
+    nameKz: 'Шығыс Қазақстан облысы',
+    region: 'east',
+    coordinates: { latitude: 49.9481, longitude: 82.6283 },
+    description: 'Горный регион на границе с Алтаем, богатый природными красотами и культурным наследием',
+    population: '330,000',
+    founded: '1720 (Усть-Каменная крепость)',
+    climate: 'Резко континентальный',
+    mainCity: 'Усть-Каменогорск',
     attractions_count: 12
+  },
+  {
+    id: 'shymkent',
+    name: 'Шымкент',
+    nameEn: 'Shymkent',
+    nameKz: 'Шымкент',
+    region: 'south',
+    coordinates: { latitude: 42.3417, longitude: 69.5901 },
+    description: 'Третий по величине город Казахстана на древнем Великом Шелковом пути',
+    population: '1,000,000',
+    founded: 'XII век (крепость Чимкент)',
+    climate: 'Умеренно континентальный',
+    mainCity: 'Шымкент',
+    attractions_count: 11
+  },
+  {
+    id: 'astana',
+    name: 'Астана (Нур-Султан)',
+    nameEn: 'Astana (Nur-Sultan)',
+    nameKz: 'Астана (Нұр-Сұлтан)',
+    region: 'central',
+    coordinates: { latitude: 51.1694, longitude: 71.4491 },
+    description: 'Столица Казахстана с ультрасовременной архитектурой и динамичным развитием',
+    population: '1,200,000',
+    founded: '1830 (Акмолинск), столица с 1997',
+    climate: 'Резко континентальный',
+    mainCity: 'Астана',
+    attractions_count: 13
+  },
+  {
+    id: 'aktau',
+    name: 'Мангистауская область',
+    nameEn: 'Mangystau Region',
+    nameKz: 'Маңғыстау облысы',
+    region: 'west',
+    coordinates: { latitude: 43.6502, longitude: 51.1601 },
+    description: 'Уникальный регион на побережье Каспийского моря с марсианскими пейзажами',
+    population: '200,000',
+    founded: '1963 (атомный город Шевченко)',
+    climate: 'Пустынный',
+    mainCity: 'Актау',
+    attractions_count: 10
   }
 ];
 
-// Достопримечательности Павлодара
 export const ATTRACTIONS = [
   {
     id: 'pvl001',
@@ -400,10 +455,598 @@ export const ATTRACTIONS = [
     visitDuration: '2-3 часа',
     bestTimeToVisit: 'Весной и осенью',
     accessibility: 'Требуется хорошая физическая подготовка'
+  },
+
+  // ========== УСТЬ-КАМЕНОГОРСК (Восточный Казахстан) ==========
+  {
+    id: 'usk001',
+    name: 'attractions.abdullinMuseum.name',
+    description: 'attractions.abdullinMuseum.description',
+    location: 'ул. Кабанбай батыра, 98',
+    regionId: 'ust-kamenogorsk',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'), // TODO: заменить на реальное фото
+    categories: ['culture', 'education', 'history'],
+    workingHours: { 
+      weekdays: '10:00 - 18:00', 
+      weekend: '10:00 - 17:00', 
+      dayOff: 'Понедельник' 
+    },
+    contacts: { 
+      phone: '+7 (7232) 26-26-74', 
+      address: 'ул. Кабанбай батыра, 98'
+    },
+    coordinates: { latitude: 49.9545, longitude: 82.6057 },
+    historicalInfo: 'Основан в 1985 году. Назван в честь братьев Абдуллиных - известных художников Казахстана.',
+    tips: [
+      'Богатая коллекция казахстанского искусства',
+      'Регулярные временные выставки',
+      'Доступна экскурсия с гидом'
+    ],
+    rating: 4.5,
+    visitDuration: '1-2 часа',
+    bestTimeToVisit: 'В выходные дни',
+    accessibility: 'Доступен для людей с ограниченными возможностями'
+  },
+  {
+    id: 'usk002',
+    name: 'attractions.jasytarPark.name',
+    description: 'attractions.jasytarPark.description',
+    location: 'пр. Абая',
+    regionId: 'ust-kamenogorsk',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['recreation', 'nature', 'entertainment'],
+    workingHours: { 
+      weekdays: '09:00 - 23:00', 
+      weekend: '09:00 - 23:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7232) 50-55-55', 
+      address: 'пр. Абая'
+    },
+    coordinates: { latitude: 49.9580, longitude: 82.6200 },
+    historicalInfo: 'Центральный парк города, место отдыха и развлечений для всей семьи.',
+    tips: [
+      'Аттракционы для детей и взрослых',
+      'Красивые аллеи для прогулок',
+      'Летом работает фонтан'
+    ],
+    rating: 4.3,
+    visitDuration: '2-3 часа',
+    bestTimeToVisit: 'Летом и осенью',
+    accessibility: 'Полностью доступен'
+  },
+  {
+    id: 'usk003',
+    name: 'attractions.svyatoTroitskyMonastery.name',
+    description: 'attractions.svyatoTroitskyMonastery.description',
+    location: 'ул. Казахстан, 65',
+    regionId: 'ust-kamenogorsk',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['religion', 'architecture', 'history'],
+    workingHours: { 
+      weekdays: '07:00 - 19:00', 
+      weekend: '07:00 - 19:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7232) 56-78-90', 
+      address: 'ул. Казахстан, 65'
+    },
+    coordinates: { latitude: 49.9380, longitude: 82.6150 },
+    historicalInfo: 'Основан в XIX веке. Один из старейших православных монастырей Восточного Казахстана.',
+    tips: [
+      'Красивая архитектура',
+      'Соблюдайте тишину при посещении',
+      'Можно посетить службу'
+    ],
+    rating: 4.6,
+    visitDuration: '1 час',
+    bestTimeToVisit: 'Утром',
+    accessibility: 'Частично доступен'
+  },
+  {
+    id: 'usk004',
+    name: 'attractions.bukhtarmaReservoir.name',
+    description: 'attractions.bukhtarmaReservoir.description',
+    location: '40 км от Усть-Каменогорска',
+    regionId: 'ust-kamenogorsk',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'recreation', 'scenic'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'Бухтарминское водохранилище'
+    },
+    coordinates: { latitude: 49.7500, longitude: 83.3000 },
+    historicalInfo: 'Создано в 1960 году при строительстве Бухтарминской ГЭС. Одно из крупнейших водохранилищ Казахстана.',
+    tips: [
+      'Отличное место для рыбалки',
+      'Можно арендовать лодку',
+      'Живописные виды на горы'
+    ],
+    rating: 4.7,
+    visitDuration: '4-8 часов',
+    bestTimeToVisit: 'Летом',
+    accessibility: 'Требуется транспорт'
+  },
+  {
+    id: 'usk005',
+    name: 'attractions.irtyshEmbankmentUsk.name',
+    description: 'attractions.irtyshEmbankmentUsk.description',
+    location: 'Набережная Иртыша',
+    regionId: 'ust-kamenogorsk',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'recreation', 'scenic'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'Набережная Иртыша'
+    },
+    coordinates: { latitude: 49.9500, longitude: 82.6150 },
+    historicalInfo: 'Благоустроенная набережная вдоль реки Иртыш - популярное место для прогулок.',
+    tips: [
+      'Красивые закаты',
+      'Велосипедные дорожки',
+      'Кафе и зоны отдыха'
+    ],
+    rating: 4.4,
+    visitDuration: '1-2 часа',
+    bestTimeToVisit: 'Вечером',
+    accessibility: 'Полностью доступна'
+  },
+
+  // ========== ШЫМКЕНТ (Южный Казахстан) ==========
+  {
+    id: 'shm001',
+    name: 'attractions.abayParkShymkent.name',
+    description: 'attractions.abayParkShymkent.description',
+    location: 'ул. Тауке хана',
+    regionId: 'shymkent',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['recreation', 'nature', 'entertainment'],
+    workingHours: { 
+      weekdays: '08:00 - 23:00', 
+      weekend: '08:00 - 23:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7252) 39-40-50', 
+      address: 'ул. Тауке хана'
+    },
+    coordinates: { latitude: 42.3150, longitude: 69.5950 },
+    historicalInfo: 'Крупнейший парк Шымкента, основан в середине XX века. Включает зоопарк и ботанический сад.',
+    tips: [
+      'Большой зоопарк с разнообразием животных',
+      'Аттракционы для детей',
+      'Красивое озеро с лебедями'
+    ],
+    rating: 4.6,
+    visitDuration: '3-4 часа',
+    bestTimeToVisit: 'Весной и летом',
+    accessibility: 'Полностью доступен'
+  },
+  {
+    id: 'shm002',
+    name: 'attractions.karavanSaraiMuseum.name',
+    description: 'attractions.karavanSaraiMuseum.description',
+    location: 'ул. Байтурсынова, 2',
+    regionId: 'shymkent',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['history', 'culture', 'education'],
+    workingHours: { 
+      weekdays: '09:00 - 18:00', 
+      weekend: '10:00 - 17:00', 
+      dayOff: 'Понедельник' 
+    },
+    contacts: { 
+      phone: '+7 (7252) 53-54-55', 
+      address: 'ул. Байтурсынова, 2'
+    },
+    coordinates: { latitude: 42.3180, longitude: 69.5870 },
+    historicalInfo: 'Музей-комплекс, посвященный истории Великого Шелкового пути и роли Шымкента как торгового центра.',
+    tips: [
+      'Уникальная коллекция артефактов',
+      'Экскурсии на трех языках',
+      'Сувенирная лавка с традиционными изделиями'
+    ],
+    rating: 4.5,
+    visitDuration: '1-2 часа',
+    bestTimeToVisit: 'В будние дни',
+    accessibility: 'Доступен для людей с ограниченными возможностями'
+  },
+  {
+    id: 'shm003',
+    name: 'attractions.nurAstanaMosqueShymkent.name',
+    description: 'attractions.nurAstanaMosqueShymkent.description',
+    location: 'ул. Тулебаева, 12',
+    regionId: 'shymkent',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['religion', 'architecture', 'culture'],
+    workingHours: { 
+      weekdays: '05:00 - 22:00', 
+      weekend: '05:00 - 22:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7252) 40-41-42', 
+      address: 'ул. Тулебаева, 12'
+    },
+    coordinates: { latitude: 42.3280, longitude: 69.6100 },
+    historicalInfo: 'Современная мечеть, построенная в начале XXI века. Один из крупнейших духовных центров Южного Казахстана.',
+    tips: [
+      'Великолепная современная архитектура',
+      'Соблюдайте дресс-код',
+      'Вход свободный'
+    ],
+    rating: 4.7,
+    visitDuration: '30-45 минут',
+    bestTimeToVisit: 'После полуденной молитвы',
+    accessibility: 'Полностью доступна'
+  },
+  {
+    id: 'shm004',
+    name: 'attractions.karatauMountain.name',
+    description: 'attractions.karatauMountain.description',
+    location: '20 км от Шымкента',
+    regionId: 'shymkent',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'adventure', 'scenic'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'хребет Каратау'
+    },
+    coordinates: { latitude: 42.5000, longitude: 69.7000 },
+    historicalInfo: 'Горный хребет длиной около 420 км. Название означает "Черные горы" на казахском языке.',
+    tips: [
+      'Отличные треккинг-маршруты',
+      'Захватите воду и снаряжение',
+      'Лучше ехать с группой'
+    ],
+    rating: 4.8,
+    visitDuration: '4-6 часов',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется хорошая физическая подготовка'
+  },
+  {
+    id: 'shm005',
+    name: 'attractions.kentauCanyons.name',
+    description: 'attractions.kentauCanyons.description',
+    location: '40 км от Шымкента, Толебийский район',
+    regionId: 'shymkent',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'adventure', 'scenic'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'Толебийский район'
+    },
+    coordinates: { latitude: 42.2000, longitude: 69.4000 },
+    historicalInfo: 'Живописные каньоны с красными скалами, популярное место для пеших походов и фотосессий.',
+    tips: [
+      'Берите удобную обувь',
+      'Лучше приезжать на рассвете или закате',
+      'Захватите еду и воду'
+    ],
+    rating: 4.6,
+    visitDuration: '3-5 часов',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется транспорт и физическая подготовка'
+  },
+
+  // ========== АСТАНА (Центральный Казахстан) ==========
+  {
+    id: 'ast001',
+    name: 'attractions.baiterek.name',
+    description: 'attractions.baiterek.description',
+    location: 'проспект Нұрлы жол, 11',
+    regionId: 'astana',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['architecture', 'culture', 'scenic'],
+    workingHours: { 
+      weekdays: '10:00 - 21:00', 
+      weekend: '10:00 - 21:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7172) 44-46-93', 
+      address: 'проспект Нұрлы жол, 11'
+    },
+    coordinates: { latitude: 51.1282, longitude: 71.4306 },
+    historicalInfo: 'Открыт в 2002 году. Высота 105 метров. Символизирует древо жизни из казахских легенд.',
+    tips: [
+      'Панорамный вид на весь город',
+      'Отпечаток руки Президента на смотровой площадке',
+      'Лучшие фото на закате'
+    ],
+    rating: 4.9,
+    visitDuration: '1 час',
+    bestTimeToVisit: 'Вечером',
+    accessibility: 'Полностью доступен'
+  },
+  {
+    id: 'ast002',
+    name: 'attractions.hazretSultanMosque.name',
+    description: 'attractions.hazretSultanMosque.description',
+    location: 'проспект Тәуелсіздік, 54',
+    regionId: 'astana',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['religion', 'architecture', 'culture'],
+    workingHours: { 
+      weekdays: '05:00 - 22:00', 
+      weekend: '05:00 - 22:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7172) 24-41-77', 
+      address: 'проспект Тәуелсіздік, 54'
+    },
+    coordinates: { latitude: 51.1330, longitude: 71.4650 },
+    historicalInfo: 'Открыта в 2012 году. Одна из крупнейших мечетей в Центральной Азии, вмещает до 10,000 человек.',
+    tips: [
+      'Грандиозная архитектура',
+      'Бесплатный вход',
+      'Экскурсии на нескольких языках'
+    ],
+    rating: 4.9,
+    visitDuration: '45 минут',
+    bestTimeToVisit: 'После полудня',
+    accessibility: 'Полностью доступна'
+  },
+  {
+    id: 'ast003',
+    name: 'attractions.palaceOfPeace.name',
+    description: 'attractions.palaceOfPeace.description',
+    location: 'проспект Тәуелсіздік, 57',
+    regionId: 'astana',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['architecture', 'culture', 'unique'],
+    workingHours: { 
+      weekdays: '10:00 - 19:00', 
+      weekend: '10:00 - 19:00', 
+      dayOff: 'Понедельник' 
+    },
+    contacts: { 
+      phone: '+7 (7172) 74-44-44', 
+      address: 'проспект Тәуелсіздік, 57'
+    },
+    coordinates: { latitude: 51.1270, longitude: 71.4690 },
+    historicalInfo: 'Построен в 2006 году по проекту британского архитектора Нормана Фостера. Высота 62 метра.',
+    tips: [
+      'Уникальная пирамидальная конструкция',
+      'Концертный зал внутри',
+      'Витражи работы Брайана Кларка'
+    ],
+    rating: 4.8,
+    visitDuration: '1-1.5 часа',
+    bestTimeToVisit: 'Днем',
+    accessibility: 'Полностью доступен'
+  },
+  {
+    id: 'ast004',
+    name: 'attractions.khanShatyr.name',
+    description: 'attractions.khanShatyr.description',
+    location: 'проспект Түркістан, 37',
+    regionId: 'astana',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['shopping', 'entertainment', 'architecture'],
+    workingHours: { 
+      weekdays: '10:00 - 22:00', 
+      weekend: '10:00 - 22:00', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: '+7 (7172) 55-88-88', 
+      address: 'проспект Түркістан, 37'
+    },
+    coordinates: { latitude: 51.1328, longitude: 71.4045 },
+    historicalInfo: 'Открыт в 2010 году. Крупнейший шатер в мире, проект Нормана Фостера. Высота 150 метров.',
+    tips: [
+      'Торговый центр внутри',
+      'Пляж и аквапарк Sky Beach',
+      'Рестораны и кинотеатры'
+    ],
+    rating: 4.7,
+    visitDuration: '2-4 часа',
+    bestTimeToVisit: 'В любое время',
+    accessibility: 'Полностью доступен'
+  },
+  {
+    id: 'ast005',
+    name: 'attractions.nationalMuseumKz.name',
+    description: 'attractions.nationalMuseumKz.description',
+    location: 'площадь Независимости, 54',
+    regionId: 'astana',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['history', 'culture', 'education'],
+    workingHours: { 
+      weekdays: '10:00 - 19:00', 
+      weekend: '10:00 - 19:00', 
+      dayOff: 'Понедельник' 
+    },
+    contacts: { 
+      phone: '+7 (7172) 91-98-88', 
+      address: 'площадь Независимости, 54',
+      website: 'nationalmuseum.kz'
+    },
+    coordinates: { latitude: 51.1310, longitude: 71.4690 },
+    historicalInfo: 'Открыт в 2014 году. Крупнейший музей Казахстана и Центральной Азии.',
+    tips: [
+      'Богатейшая коллекция артефактов',
+      'Интерактивные экспозиции',
+      'Аудиогид на нескольких языках'
+    ],
+    rating: 4.8,
+    visitDuration: '2-3 часа',
+    bestTimeToVisit: 'В будние дни',
+    accessibility: 'Полностью доступен'
+  },
+
+  // ========== АКТАУ (Западный Казахстан) ==========
+  {
+    id: 'akt001',
+    name: 'attractions.beketAtaMosque.name',
+    description: 'attractions.beketAtaMosque.description',
+    location: '80 км от Актау, урочище Огланды',
+    regionId: 'aktau',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['religion', 'history', 'unique'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'урочище Огланды'
+    },
+    coordinates: { latitude: 43.3500, longitude: 51.5500 },
+    historicalInfo: 'Подземная мечеть XVIII-XIX веков. Место паломничества, посвященное Бекет-Ате - суфийскому святому.',
+    tips: [
+      'Священное место для мусульман',
+      'Нужен полноприводный автомобиль',
+      'Захватите фонарик для спуска'
+    ],
+    rating: 4.9,
+    visitDuration: '2-3 часа',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется транспорт и физическая подготовка'
+  },
+  {
+    id: 'akt002',
+    name: 'attractions.boszhiraCanyon.name',
+    description: 'attractions.boszhiraCanyon.description',
+    location: '300 км от Актау, плато Устюрт',
+    regionId: 'aktau',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'scenic', 'adventure'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'плато Устюрт'
+    },
+    coordinates: { latitude: 43.7000, longitude: 53.0500 },
+    historicalInfo: 'Марсианский пейзаж с белыми скалами-останцами. Древнее дно моря Тетис.',
+    tips: [
+      'Берите гида - легко заблудиться',
+      'Незабываемые закаты',
+      'Лучше ехать на 2-3 дня с палатками'
+    ],
+    rating: 5.0,
+    visitDuration: '1-2 дня',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется внедорожник и опытный водитель'
+  },
+  {
+    id: 'akt003',
+    name: 'attractions.sherkalaМountain.name',
+    description: 'attractions.sherkalaМountain.description',
+    location: '170 км от Актау',
+    regionId: 'aktau',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'scenic', 'adventure'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'гора Шеркала'
+    },
+    coordinates: { latitude: 43.9500, longitude: 52.5000 },
+    historicalInfo: 'Гора высотой 332 метра, напоминающая юрту. Название означает "Львиная гора".',
+    tips: [
+      'Можно подняться на вершину',
+      'Великолепные виды для фото',
+      'Удобная обувь обязательна'
+    ],
+    rating: 4.9,
+    visitDuration: '2-3 часа',
+    bestTimeToVisit: 'Весной и осенью',
+    accessibility: 'Требуется транспорт'
+  },
+  {
+    id: 'akt004',
+    name: 'attractions.aktauBeach.name',
+    description: 'attractions.aktauBeach.description',
+    location: 'Набережная Актау',
+    regionId: 'aktau',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['nature', 'recreation', 'scenic'],
+    workingHours: { 
+      weekdays: '24/7', 
+      weekend: '24/7', 
+      dayOff: null 
+    },
+    contacts: { 
+      phone: null, 
+      address: 'Набережная Актау'
+    },
+    coordinates: { latitude: 43.6380, longitude: 51.1920 },
+    historicalInfo: 'Пляжи вдоль побережья Каспийского моря - главная летняя достопримечательность города.',
+    tips: [
+      'Теплая вода летом',
+      'Прокат водных видов спорта',
+      'Кафе и рестораны на набережной'
+    ],
+    rating: 4.3,
+    visitDuration: '3-6 часов',
+    bestTimeToVisit: 'Летом (июнь-август)',
+    accessibility: 'Полностью доступен'
+  },
+  {
+    id: 'akt005',
+    name: 'attractions.mangystauMuseum.name',
+    description: 'attractions.mangystauMuseum.description',
+    location: 'мкр. 15, дом 27',
+    regionId: 'aktau',
+    image: require('../assets/pavlodar/pavlodar-museum.jpg'),
+    categories: ['history', 'culture', 'education'],
+    workingHours: { 
+      weekdays: '09:00 - 18:00', 
+      weekend: '10:00 - 17:00', 
+      dayOff: 'Понедельник' 
+    },
+    contacts: { 
+      phone: '+7 (7292) 43-37-93', 
+      address: 'мкр. 15, дом 27'
+    },
+    coordinates: { latitude: 43.6550, longitude: 51.1590 },
+    historicalInfo: 'Основан в 1985 году. Содержит коллекцию по истории Мангистауской области.',
+    tips: [
+      'Экспозиция о древней истории региона',
+      'Артефакты из некрополей',
+      'Этнографическая коллекция'
+    ],
+    rating: 4.2,
+    visitDuration: '1-1.5 часа',
+    bestTimeToVisit: 'В будние дни',
+    accessibility: 'Доступен для людей с ограниченными возможностями'
   }
 ];
 
-// Интересы для фильтрации
 export const INTERESTS = [
   { id: 'religion', name: 'interests.religion', icon: 'moon' },
   { id: 'history', name: 'interests.history', icon: 'book' },
@@ -419,7 +1062,6 @@ export const INTERESTS = [
   { id: 'education', name: 'interests.education', icon: 'school' }
 ];
 
-// Маршруты для Павлодара
 export const ROUTES = [
   {
     id: 'pvl_route_1',
@@ -428,7 +1070,7 @@ export const ROUTES = [
     duration: '5-6 часов',
     difficulty: 'Средний',
     regionId: 'pavlodar',
-    attractions: ['pvl004', 'pvl005', 'pvl002'], // Музеи и собор
+    attractions: ['pvl004', 'pvl005', 'pvl002'], 
     recommendedTransport: 'Пешком/Автобус',
     distance: '8 км',
     estimatedCost: '800-1500 тенге',
@@ -464,10 +1106,217 @@ export const ROUTES = [
       'Первый национальный парк Казахстана',
       'Уникальные природные ландшафты'
     ]
+  },
+
+  // ========== УСТЬ-КАМЕНОГОРСК ==========
+  {
+    id: 'usk_route_1',
+    name: 'routes.culturalUstKamenogorsk.name',
+    description: 'routes.culturalUstKamenogorsk.description',
+    duration: '4-5 часов',
+    difficulty: 'Легкий',
+    regionId: 'ust-kamenogorsk',
+    attractions: ['usk001', 'usk003', 'usk002'],
+    recommendedTransport: 'Пешком/Общественный транспорт',
+    distance: '5 км',
+    estimatedCost: '500-1000 тенге',
+    tips: [
+      'Музей закрыт по понедельникам',
+      'В монастыре соблюдайте тишину',
+      'В парке можно пообедать'
+    ],
+    highlights: [
+      'Коллекция казахстанского искусства',
+      'Православное наследие региона',
+      'Отдых в центральном парке'
+    ]
+  },
+  {
+    id: 'usk_route_2',
+    name: 'routes.natureEastKazakhstan.name',
+    description: 'routes.natureEastKazakhstan.description',
+    duration: 'Полный день',
+    difficulty: 'Средний',
+    regionId: 'ust-kamenogorsk',
+    attractions: ['usk004', 'usk005'],
+    recommendedTransport: 'Автомобиль',
+    distance: '80 км',
+    estimatedCost: '2000-4000 тенге',
+    tips: [
+      'Лучше ехать летом',
+      'Возьмите снасти для рыбалки',
+      'Захватите еду и воду'
+    ],
+    highlights: [
+      'Крупнейшее водохранилище региона',
+      'Виды на Алтайские горы',
+      'Отличная рыбалка'
+    ]
+  },
+
+  // ========== ШЫМКЕНТ ==========
+  {
+    id: 'shm_route_1',
+    name: 'routes.historicalShymkent.name',
+    description: 'routes.historicalShymkent.description',
+    duration: '5-6 часов',
+    difficulty: 'Легкий',
+    regionId: 'shymkent',
+    attractions: ['shm002', 'shm001', 'shm003'],
+    recommendedTransport: 'Пешком/Такси',
+    distance: '7 км',
+    estimatedCost: '1000-2000 тенге',
+    tips: [
+      'Музей закрыт по понедельникам',
+      'В парке есть зоопарк',
+      'Мечеть лучше посещать после обеда'
+    ],
+    highlights: [
+      'История Великого Шелкового пути',
+      'Крупнейший парк города',
+      'Современная исламская архитектура'
+    ]
+  },
+  {
+    id: 'shm_route_2',
+    name: 'routes.mountainsOfShymkent.name',
+    description: 'routes.mountainsOfShymkent.description',
+    duration: 'Полный день',
+    difficulty: 'Сложный',
+    regionId: 'shymkent',
+    attractions: ['shm004', 'shm005'],
+    recommendedTransport: 'Внедорожник',
+    distance: '60 км',
+    estimatedCost: '3000-6000 тенге',
+    tips: [
+      'Нужна физическая подготовка',
+      'Берите удобную обувь и воду',
+      'Лучше ехать группой'
+    ],
+    highlights: [
+      'Горные панорамы хребта Каратау',
+      'Живописные каньоны',
+      'Треккинг и фотографии'
+    ]
+  },
+
+  // ========== АСТАНА ==========
+  {
+    id: 'ast_route_1',
+    name: 'routes.modernAstana.name',
+    description: 'routes.modernAstana.description',
+    duration: '6-7 часов',
+    difficulty: 'Легкий',
+    regionId: 'astana',
+    attractions: ['ast001', 'ast003', 'ast004'],
+    recommendedTransport: 'Пешком/Метро/Такси',
+    distance: '10 км',
+    estimatedCost: '2000-4000 тенге',
+    tips: [
+      'Байтерек лучше посещать вечером',
+      'В Хан Шатыре есть аквапарк',
+      'Экскурсия в Дворце Мира по записи'
+    ],
+    highlights: [
+      'Панорамный вид с Байтерека',
+      'Пирамида Нормана Фостера',
+      'Крупнейший шатер в мире'
+    ]
+  },
+  {
+    id: 'ast_route_2',
+    name: 'routes.spiritualAstana.name',
+    description: 'routes.spiritualAstana.description',
+    duration: '4-5 часов',
+    difficulty: 'Легкий',
+    regionId: 'astana',
+    attractions: ['ast002', 'ast005'],
+    recommendedTransport: 'Пешком/Такси',
+    distance: '5 км',
+    estimatedCost: '1000-2000 тенге',
+    tips: [
+      'Мечеть лучше посещать после обеда',
+      'Музей закрыт по понедельникам',
+      'Аудиогид в музее на разных языках'
+    ],
+    highlights: [
+      'Крупнейшая мечеть Центральной Азии',
+      'История независимого Казахстана',
+      'Уникальные экспозиции'
+    ]
+  },
+  {
+    id: 'ast_route_3',
+    name: 'routes.astanaInOneDay.name',
+    description: 'routes.astanaInOneDay.description',
+    duration: 'Полный день',
+    difficulty: 'Средний',
+    regionId: 'astana',
+    attractions: ['ast001', 'ast002', 'ast003', 'ast004', 'ast005'],
+    recommendedTransport: 'Такси/Автомобиль',
+    distance: '20 км',
+    estimatedCost: '5000-10000 тенге',
+    tips: [
+      'Начните с Байтерека утром',
+      'Обед в Хан Шатыре',
+      'Закончите в Национальном музее'
+    ],
+    highlights: [
+      'Все главные символы столицы',
+      'Современная и духовная архитектура',
+      'История и культура Казахстана'
+    ]
+  },
+
+  // ========== АКТАУ ==========
+  {
+    id: 'akt_route_1',
+    name: 'routes.coastalAktau.name',
+    description: 'routes.coastalAktau.description',
+    duration: '4-5 часов',
+    difficulty: 'Легкий',
+    regionId: 'aktau',
+    attractions: ['akt004', 'akt005'],
+    recommendedTransport: 'Пешком/Такси',
+    distance: '8 км',
+    estimatedCost: '500-1500 тенге',
+    tips: [
+      'Пляж лучше посещать летом',
+      'Музей закрыт по понедельникам',
+      'На набережной много кафе'
+    ],
+    highlights: [
+      'Каспийское море',
+      'История Мангистау',
+      'Отдых на пляже'
+    ]
+  },
+  {
+    id: 'akt_route_2',
+    name: 'routes.mangystauWonders.name',
+    description: 'routes.mangystauWonders.description',
+    duration: '2-3 дня',
+    difficulty: 'Сложный',
+    regionId: 'aktau',
+    attractions: ['akt001', 'akt003', 'akt002'],
+    recommendedTransport: 'Внедорожник с гидом',
+    distance: '600 км',
+    estimatedCost: '50000-100000 тенге (с гидом и ночевками)',
+    tips: [
+      'Обязателен опытный гид',
+      'Нужен мощный внедорожник',
+      'Палатки и запас воды/еды',
+      'Лучший сезон: апрель-май, сентябрь-октябрь'
+    ],
+    highlights: [
+      'Подземная мечеть Бекет-Ата',
+      'Гора Шеркала - "Львиная гора"',
+      'Марсианские пейзажи Босжиры',
+      'Незабываемые закаты в пустыне'
+    ]
   }
 ];
 
-// Стили остаются прежними
 const typography = {
   headings: {
     fontFamily: 'Playfair Display',

@@ -14,31 +14,122 @@ import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
 
 const HISTORICAL_FACTS = [
+  // ========== ПАВЛОДАР (Северный регион) ==========
   {
-    id: '1',
+    id: 'pavlodar_1',
     year: '1720',
+    regionId: 'pavlodar',
     title: 'historicalFacts.pavlodarFoundation.title',
     description: 'historicalFacts.pavlodarFoundation.description',
     fullDescription: 'historicalFacts.pavlodarFoundation.fullDescription',
     image: require('../assets/historical/pavlodar-foundation.jpg')
   },
   {
-    id: '2',
+    id: 'pavlodar_2',
     year: '1861',
+    regionId: 'pavlodar',
     title: 'historicalFacts.cityStatus.title',
     description: 'historicalFacts.cityStatus.description',
     fullDescription: 'historicalFacts.cityStatus.fullDescription',
     image: require('../assets/historical/pavlodar-city.jpeg')
+  },
+  
+  // ========== УСТЬ-КАМЕНОГОРСК (Восточный регион) ==========
+  {
+    id: 'usk_1',
+    year: '1720',
+    regionId: 'ust-kamenogorsk',
+    title: 'historicalFacts.uskFortress.title',
+    description: 'historicalFacts.uskFortress.description',
+    fullDescription: 'historicalFacts.uskFortress.fullDescription',
+    image: require('../assets/historical/pavlodar-foundation.jpg') // Заменить на usk-fortress.jpg
+  },
+  {
+    id: 'usk_2',
+    year: '1868',
+    regionId: 'ust-kamenogorsk',
+    title: 'historicalFacts.uskRegionalCenter.title',
+    description: 'historicalFacts.uskRegionalCenter.description',
+    fullDescription: 'historicalFacts.uskRegionalCenter.fullDescription',
+    image: require('../assets/historical/pavlodar-city.jpeg') // Заменить на usk-city.jpg
+  },
+  
+  // ========== ШЫМКЕНТ (Южный регион) ==========
+  {
+    id: 'shymkent_1',
+    year: '1100-1200',
+    regionId: 'shymkent',
+    title: 'historicalFacts.shymkentOrigin.title',
+    description: 'historicalFacts.shymkentOrigin.description',
+    fullDescription: 'historicalFacts.shymkentOrigin.fullDescription',
+    image: require('../assets/historical/pavlodar-foundation.jpg') // Заменить на shymkent-ancient.jpg
+  },
+  {
+    id: 'shymkent_2',
+    year: '2018',
+    regionId: 'shymkent',
+    title: 'historicalFacts.shymkentCity.title',
+    description: 'historicalFacts.shymkentCity.description',
+    fullDescription: 'historicalFacts.shymkentCity.fullDescription',
+    image: require('../assets/historical/pavlodar-city.jpeg') // Заменить на shymkent-modern.jpg
+  },
+  
+  // ========== АСТАНА (Центральный регион) ==========
+  {
+    id: 'astana_1',
+    year: '1830',
+    regionId: 'astana',
+    title: 'historicalFacts.astanaFoundation.title',
+    description: 'historicalFacts.astanaFoundation.description',
+    fullDescription: 'historicalFacts.astanaFoundation.fullDescription',
+    image: require('../assets/historical/pavlodar-foundation.jpg') // Заменить на astana-akmola.jpg
+  },
+  {
+    id: 'astana_2',
+    year: '1997',
+    regionId: 'astana',
+    title: 'historicalFacts.astanaCapital.title',
+    description: 'historicalFacts.astanaCapital.description',
+    fullDescription: 'historicalFacts.astanaCapital.fullDescription',
+    image: require('../assets/historical/pavlodar-city.jpeg') // Заменить на astana-modern.jpg
+  },
+  
+  // ========== АКТАУ (Западный регион) ==========
+  {
+    id: 'aktau_1',
+    year: '1963',
+    regionId: 'aktau',
+    title: 'historicalFacts.aktauFoundation.title',
+    description: 'historicalFacts.aktauFoundation.description',
+    fullDescription: 'historicalFacts.aktauFoundation.fullDescription',
+    image: require('../assets/historical/pavlodar-foundation.jpg') // Заменить на aktau-foundation.jpg
+  },
+  {
+    id: 'aktau_2',
+    year: '1991',
+    regionId: 'aktau',
+    title: 'historicalFacts.aktauRename.title',
+    description: 'historicalFacts.aktauRename.description',
+    fullDescription: 'historicalFacts.aktauRename.fullDescription',
+    image: require('../assets/historical/pavlodar-city.jpeg') // Заменить на aktau-modern.jpg
   }
 ];
 
-export const HistoricalFactsScreen = () => {
+export const HistoricalFactsScreen = ({ route }) => {
   const [selectedFact, setSelectedFact] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   
   const { theme } = useTheme();
 
   const t = (key, params) => TranslationService.translate(key, params);
+  
+  // Получаем regionId из параметров навигации (если передан)
+  const regionId = route?.params?.regionId;
+  
+  // Фильтруем факты по региону (если regionId передан)
+  const displayedFacts = regionId 
+    ? HISTORICAL_FACTS.filter(fact => fact.regionId === regionId)
+    : HISTORICAL_FACTS;
 
   const openFactDetails = (fact) => {
     setSelectedFact(fact);
@@ -48,7 +139,7 @@ export const HistoricalFactsScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <FlatList
-        data={HISTORICAL_FACTS}
+        data={displayedFacts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity 

@@ -6,7 +6,6 @@ import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
 import { useLanguage } from '../context/LanguageContext';
 
-// Компонент для отображения текста, который может загружаться асинхронно
 const TranslatedText = React.memo(({ textKey, style }) => {
   const { language } = useLanguage();
   const [text, setText] = useState(textKey);
@@ -14,7 +13,6 @@ const TranslatedText = React.memo(({ textKey, style }) => {
   useEffect(() => {
     let isMounted = true;
     const translate = async () => {
-      // TranslationService.translate может вернуть Promise
       const translationResult = TranslationService.translate(textKey);
       if (typeof translationResult.then === 'function') {
         translationResult.then(translatedText => {

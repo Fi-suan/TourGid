@@ -23,6 +23,137 @@ class PlacesService {
     }
   }
 
+  // Поиск музеев рядом
+  async searchNearbyMuseums(location, radius = 5000) {
+    try {
+      const places = await GoogleAPIService.searchNearbyPlaces(
+        location, 
+        radius, 
+        'museum'
+      );
+
+      return places.map(place => this.formatPlace(place));
+    } catch (error) {
+      console.error('Museums search error:', error);
+      return [];
+    }
+  }
+
+  // Поиск исторических мест рядом (комбинированный)
+  async searchNearbyHistoricalPlaces(location, radius = 10000) {
+    // Проверяем кэш
+    const cacheKey = `historical_${location.latitude}_${location.longitude}_${radius}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      console.log('Returning cached historical places');
+      return cached.data;
+    }
+
+    try {
+      const types = ['tourist_attraction', 'museum', 'church', 'mosque', 'synagogue', 'hindu_temple'];
+      const allPlaces = [];
+
+      for (const type of types) {
+        try {
+          const places = await GoogleAPIService.searchNearbyPlaces(location, radius, type);
+          allPlaces.push(...places);
+        } catch (error) {
+          console.error(`Error searching ${type}:`, error);
+        }
+      }
+
+      // Убираем дубликаты по place_id
+      const uniquePlaces = allPlaces.filter((place, index, self) =>
+        index === self.findIndex((p) => p.place_id === place.place_id)
+      );
+
+      const formattedPlaces = uniquePlaces.map(place => this.formatPlace(place));
+
+      // Кешируем результат
+      this.cache.set(cacheKey, {
+        data: formattedPlaces,
+        timestamp: Date.now()
+      });
+
+      return formattedPlaces;
+    } catch (error) {
+      console.error('Historical places search error:', error);
+      return [];
+    }
+  }
+
+  // Поиск природных достопримечательностей
+  async searchNearbyNaturalAttractions(location, radius = 15000) {
+    try {
+      const types = ['park', 'natural_feature', 'point_of_interest'];
+      const allPlaces = [];
+
+      for (const type of types) {
+        try {
+          const places = await GoogleAPIService.searchNearbyPlaces(location, radius, type);
+          allPlaces.push(...places);
+        } catch (error) {
+          console.error(`Error searching ${type}:`, error);
+        }
+      }
+
+      const uniquePlaces = allPlaces.filter((place, index, self) =>
+        index === self.findIndex((p) => p.place_id === place.place_id)
+      );
+
+      return uniquePlaces.map(place => this.formatPlace(place));
+    } catch (error) {
+      console.error('Natural attractions search error:', error);
+      return [];
+    }
+  }
+
+  // Поиск достопримечательностей по категории
+  async searchByCategory(location, category, radius = 10000) {
+    // Проверяем кэш
+    const cacheKey = `category_${category}_${location.latitude}_${location.longitude}_${radius}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      console.log(`Returning cached ${category} places`);
+      return cached.data;
+    }
+
+    const categoryMap = {
+      'history': ['tourist_attraction', 'museum'],
+      'culture': ['tourist_attraction', 'museum', 'art_gallery', 'library'],
+      'religious': ['church', 'mosque', 'synagogue', 'hindu_temple'],
+      'nature': ['park', 'natural_feature'],
+      'architecture': ['tourist_attraction', 'point_of_interest'],
+      'education': ['museum', 'library', 'university']
+    };
+
+    const types = categoryMap[category] || ['tourist_attraction'];
+    const allPlaces = [];
+
+    for (const type of types) {
+      try {
+        const places = await GoogleAPIService.searchNearbyPlaces(location, radius, type);
+        allPlaces.push(...places);
+      } catch (error) {
+        console.error(`Error searching ${type}:`, error);
+      }
+    }
+
+    const uniquePlaces = allPlaces.filter((place, index, self) =>
+      index === self.findIndex((p) => p.place_id === place.place_id)
+    );
+
+    const formattedPlaces = uniquePlaces.map(place => this.formatPlace(place));
+
+    // Кешируем результат
+    this.cache.set(cacheKey, {
+      data: formattedPlaces,
+      timestamp: Date.now()
+    });
+
+    return formattedPlaces;
+  }
+
   // Поиск ресторанов рядом
   async searchNearbyRestaurants(location, radius = 3000) {
     try {

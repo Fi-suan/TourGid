@@ -4,14 +4,12 @@
   "version": "1.2.4",
   "main": "index.js",
   "scripts": {
-    "start": "index.js",
-    "build": "echo 'Build complete'",
-    "expo:start": "expo start",
-    "expo:android": "expo start --android",
-    "expo:ios": "expo start --ios",
-    "expo:web": "expo start --web",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build:android": "eas build --platform android",
+    "build:ios": "eas build --platform ios"
   },
   "dependencies": {
     "@cosmjs/stargate": "^0.33.1",
@@ -30,6 +28,7 @@
     "dotenv": "^16.3.1",
     "expo": "^54.0.0",
     "expo-av": "~15.1.2",
+    "expo-image-picker": "^17.0.8",
     "expo-location": "~18.1.4",
     "expo-speech": "~13.1.1",
     "expo-status-bar": "~2.2.3",

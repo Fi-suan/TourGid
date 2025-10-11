@@ -16,7 +16,9 @@
       "bundleIdentifier": "com.nepitch.tourgid",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Приложению требуется доступ к вашему местоположению для отображения на карте и построения маршрутов.",
-        "NSMicrophoneUsageDescription": "Приложению требуется доступ к микрофону для распознавания голосовых команд AI-ассистентом."
+        "NSMicrophoneUsageDescription": "Приложению требуется доступ к микрофону для распознавания голосовых команд AI-ассистентом.",
+        "NSCameraUsageDescription": "Приложению требуется доступ к камере для распознавания достопримечательностей.",
+        "NSPhotoLibraryUsageDescription": "Приложению требуется доступ к галерее для распознавания достопримечательностей на фотографиях."
       },
       "config": {
         "googleMapsApiKey": "AIzaSyDHLPatV3_3xG1cdx0nvEhxCdn2XEgnzac"
@@ -27,8 +29,13 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
       ],
       "config": {
         "googleMaps": {

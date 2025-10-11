@@ -34,10 +34,8 @@ export const HistoricalMap = ({
   const [routeAnalysis, setRouteAnalysis] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  // Обновление маршрута при изменении параметров
   useEffect(() => {
     if (isAIRoute && aiRoute?.route?.coordinates) {
-      // Если это AI маршрут и координаты уже есть, просто отображаем их
       console.log('Displaying pre-generated AI route...');
       setRouteCoordinates(aiRoute.route.coordinates);
       setRouteInfo({
@@ -62,27 +60,21 @@ export const HistoricalMap = ({
 
     setIsLoadingRoute(true);
     try {
-      // Используем местоположение пользователя как стартовую точку, если доступно
       let startPoint = userLocation;
       if (!startPoint && attractions.length > 0) {
-        // Fallback на первую достопримечательность если местоположение недоступно
         startPoint = attractions[0].coordinates;
       }
       
       let endPoint, waypoints;
       
       if (attractions.length === 1) {
-        // Если одна достопримечательность - маршрут от пользователя к ней
         endPoint = attractions[0].coordinates;
         waypoints = [];
       } else {
-        // Если несколько достопримечательностей
         if (userLocation) {
-          // От пользователя через все достопримечательности
           endPoint = attractions[attractions.length - 1].coordinates;
           waypoints = attractions.slice(0, -1).map(attr => attr.coordinates);
         } else {
-          // Fallback: от первой до последней через промежуточные
           startPoint = attractions[0].coordinates;
           endPoint = attractions[attractions.length - 1].coordinates;
           waypoints = attractions.slice(1, -1).map(attr => attr.coordinates);
@@ -94,7 +86,6 @@ export const HistoricalMap = ({
       console.log('📍 End:', endPoint);
       console.log('📍 Waypoints:', waypoints.length);
       
-      // Проверяем расстояние - если больше 50км, используем автомобильный режим
       const totalDistance = calculateDistance(
         startPoint.latitude, startPoint.longitude,
         endPoint.latitude, endPoint.longitude
@@ -103,7 +94,6 @@ export const HistoricalMap = ({
       const adjustedTravelMode = totalDistance > 50 ? 'DRIVING' : travelMode;
       console.log(`📏 Distance: ${totalDistance.toFixed(1)}km, Mode: ${adjustedTravelMode}`);
       
-      // Используем Google Directions API
       const routeResult = await getDirectionsFromGoogle(
         startPoint,
         endPoint,
@@ -120,11 +110,9 @@ export const HistoricalMap = ({
           isFallback: routeResult.isFallback
         });
 
-        // Анализ маршрута
         const analysis = analyzeRoute(routeResult);
         setRouteAnalysis(analysis);
 
-        // Центрируем карту на маршрут
         if (routeResult.route.coordinates && routeResult.route.coordinates.length > 1 && mapRef.current) {
           mapRef.current.fitToCoordinates(routeResult.route.coordinates, {
             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -146,18 +134,15 @@ export const HistoricalMap = ({
     }
   };
 
-  // 🆕 Генерация AI маршрута
   const generateAIRoute = async () => {
     if (!aiRoute || !aiRoute.destination) return;
 
     setIsLoadingRoute(true);
     try {
-      // Получаем текущее местоположение пользователя или используем центр ближайшего региона
       let startLocation = userLocation;
       if (!startLocation) {
-        // Fallback на координаты центра карты или первой достопримечательности
         startLocation = attractions?.[0]?.coordinates || {
-          latitude: 52.3000, // Павлодар (исправлено с Астаны)
+          latitude: 52.3000,
           longitude: 76.9500
         };
       }
@@ -178,11 +163,9 @@ export const HistoricalMap = ({
           destination: aiRoute.destination.name
         });
 
-        // Анализ AI маршрута
         const analysis = analyzeRoute(routeResult);
         setRouteAnalysis(analysis);
 
-        // Центрируем карту на AI маршрут
         if (routeResult.route.coordinates.length > 0 && mapRef.current) {
           const allPoints = [startLocation, ...routeResult.route.coordinates];
           mapRef.current.fitToCoordinates(allPoints, {
@@ -200,7 +183,6 @@ export const HistoricalMap = ({
     }
   };
 
-  // Fallback маршрут прямыми линиями
   const generateFallbackRoute = () => {
     if (!attractions || attractions.length < 2) return;
 
@@ -209,7 +191,6 @@ export const HistoricalMap = ({
       const start = attractions[i].coordinates;
       const end = attractions[i + 1].coordinates;
       
-      // Создаем промежуточные точки для плавной линии
       for (let j = 0; j <= 20; j++) {
         const ratio = j / 20;
         const lat = start.latitude + (end.latitude - start.latitude) * ratio;
@@ -220,7 +201,6 @@ export const HistoricalMap = ({
 
     setRouteCoordinates(coordinates);
     
-    // Примерный расчет расстояния
     let totalDistance = 0;
     for (let i = 0; i < attractions.length - 1; i++) {
       totalDistance += calculateDistance(
@@ -233,19 +213,17 @@ export const HistoricalMap = ({
 
     setRouteInfo({
       distance: totalDistance,
-      duration: (totalDistance / 4.5) * 60, // примерно 4.5 км/ч пешком
+      duration: (totalDistance / 4.5) * 60, 
       isFallback: true
     });
   };
 
-  // Очистка маршрута
   const clearRoute = () => {
     setRouteCoordinates([]);
     setRouteInfo(null);
     setRouteAnalysis(null);
   };
 
-  // 🆕 Переключение типа транспорта
   const switchTravelMode = () => {
     const modes = [
       { key: 'WALKING', name: 'Пешком', icon: 'walk' },
@@ -258,7 +236,6 @@ export const HistoricalMap = ({
     setTravelMode(modes[nextIndex].key);
   };
 
-  // 🆕 Получение иконки текущего режима транспорта
   const getTravelModeIcon = () => {
     switch (travelMode) {
       case 'DRIVING': return 'car';
@@ -267,7 +244,6 @@ export const HistoricalMap = ({
     }
   };
 
-  // 🆕 Показать детали маршрута
   const showRouteDetails = () => {
     if (!routeInfo) return;
 
@@ -299,14 +275,11 @@ export const HistoricalMap = ({
     console.log('📋 Route details:', details.join('\n'));
   };
 
-  // Определение центра карты
   const getMapCenter = () => {
     if (attractions && attractions.length > 0) {
-      // Используем первую достопримечательность как центр
       return attractions[0].coordinates;
     }
     
-    // Fallback на Павлодар (исправлено с Астаны)
     return {
       latitude: 52.3000,
       longitude: 76.9500,
@@ -345,7 +318,6 @@ export const HistoricalMap = ({
           }
         }}
       >
-        {/* Маркеры достопримечательностей - показываются только при showMarkers=true */}
         {showMarkers && attractions.map((attraction, index) => (
           <Marker
             key={attraction.id}
@@ -363,7 +335,6 @@ export const HistoricalMap = ({
           </Marker>
         ))}
 
-        {/* Линия маршрута */}
         {routeCoordinates.length > 0 && (
           <Polyline
             coordinates={userLocation ? [userLocation, ...routeCoordinates] : routeCoordinates}
@@ -373,8 +344,7 @@ export const HistoricalMap = ({
           />
         )}
       </MapView>
-
-      {/* 🆕 Панель управления маршрутом */}
+      
       {(showRoute || isAIRoute) && (
         <View style={[styles.routeControls, { backgroundColor: theme.colors.cardBackground }]}>
           <TouchableOpacity 
@@ -502,7 +472,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Стиль карты для AI-маршрутов (более современный)
 const aiMapStyle = [
   {
     "elementType": "geometry",
@@ -548,7 +517,6 @@ const aiMapStyle = [
   }
 ];
 
-// Стиль карты под старину (оригинальный)
 const historicalMapStyle = [
   {
     "elementType": "geometry",

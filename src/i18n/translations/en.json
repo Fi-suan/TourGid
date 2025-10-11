@@ -46,5 +46,177 @@
     "nature": "Nature",
     "culture": "Culture",
     "architecture": "Architecture"
+  },
+  "attractions": {
+    "abdullinMuseum": {
+      "name": "Abdullin Brothers Art Museum",
+      "description": "Largest art collection in Eastern Kazakhstan"
+    },
+    "jasytarPark": {
+      "name": "Zhaster Park",
+      "description": "Central recreation park with attractions and green areas"
+    },
+    "svyatoTroitskyMonastery": {
+      "name": "Holy Trinity Monastery",
+      "description": "Historic Orthodox monastery from the 19th century"
+    },
+    "bukhtarmaReservoir": {
+      "name": "Bukhtarma Reservoir",
+      "description": "One of Kazakhstan's largest reservoirs with scenic views"
+    },
+    "irtyshEmbankmentUsk": {
+      "name": "Irtysh Embankment",
+      "description": "Well-maintained waterfront promenade for walks and recreation"
+    },
+    "abayParkShymkent": {
+      "name": "Abay Central Park",
+      "description": "Shymkent's largest park with zoo and botanical garden"
+    },
+    "karavanSaraiMuseum": {
+      "name": "Karavan-Saray Museum",
+      "description": "Historic complex dedicated to the Great Silk Road"
+    },
+    "nurAstanaMosqueShymkent": {
+      "name": "Nur-Astana Mosque",
+      "description": "Modern mosque - spiritual center of Southern Kazakhstan"
+    },
+    "karatauMountain": {
+      "name": "Karatau Ridge",
+      "description": "Mountain range with scenic views and trekking routes"
+    },
+    "kentauCanyons": {
+      "name": "Kentau Canyons",
+      "description": "Picturesque canyons with red rocks"
+    },
+    "baiterek": {
+      "name": "Baiterek",
+      "description": "Main symbol of the capital with panoramic city views"
+    },
+    "hazretSultanMosque": {
+      "name": "Hazret Sultan Mosque",
+      "description": "One of the largest mosques in Central Asia"
+    },
+    "palaceOfPeace": {
+      "name": "Palace of Peace and Reconciliation",
+      "description": "Unique pyramid designed by Norman Foster"
+    },
+    "khanShatyr": {
+      "name": "Khan Shatyr",
+      "description": "World's largest tent - shopping and entertainment center"
+    },
+    "nationalMuseumKz": {
+      "name": "National Museum of Kazakhstan",
+      "description": "Country's largest museum with richest collection"
+    },
+    "beketAtaMosque": {
+      "name": "Beket-Ata Underground Mosque",
+      "description": "Sacred pilgrimage site in a cave"
+    },
+    "boszhiraCanyon": {
+      "name": "Boszhira Canyon",
+      "description": "Martian landscapes with white chalk cliffs"
+    },
+    "sherkalaМountain": {
+      "name": "Sherkala Mountain",
+      "description": "Yurt-shaped mountain - 'Lion Mountain'"
+    },
+    "aktauBeach": {
+      "name": "Aktau Beaches",
+      "description": "Sandy beaches on the Caspian Sea coast"
+    },
+    "mangystauMuseum": {
+      "name": "Mangystau History Museum",
+      "description": "History and culture of Mangystau region"
+    }
+  },
+  "routes": {
+    "culturalUstKamenogorsk": {
+      "name": "Cultural Heritage of Ust-Kamenogorsk",
+      "description": "Museums, monastery and central park"
+    },
+    "natureEastKazakhstan": {
+      "name": "Nature of East Kazakhstan",
+      "description": "Bukhtarma Reservoir and Irtysh Embankment"
+    },
+    "historicalShymkent": {
+      "name": "Historical Shymkent",
+      "description": "Great Silk Road history and spiritual centers"
+    },
+    "mountainsOfShymkent": {
+      "name": "Mountains of Shymkent",
+      "description": "Trekking along Karatau Ridge and scenic canyons"
+    },
+    "modernAstana": {
+      "name": "Modern Astana",
+      "description": "Architectural symbols of Kazakhstan's capital"
+    },
+    "spiritualAstana": {
+      "name": "Spiritual Astana",
+      "description": "Hazret Sultan Mosque and National Museum"
+    },
+    "astanaInOneDay": {
+      "name": "Astana in One Day",
+      "description": "All main attractions of the capital"
+    },
+    "coastalAktau": {
+      "name": "Coastal Aktau",
+      "description": "Caspian beaches and regional history museum"
+    },
+    "mangystauWonders": {
+      "name": "Wonders of Mangystau",
+      "description": "Epic journey: Beket-Ata, Sherkala, Boszhira"
+    }
+  },
+  "historicalFacts": {
+    "pavlodarFoundation": {
+      "title": "Foundation of Koryakovsky Outpost",
+      "description": "In 1720, Koryakovsky Outpost was founded on the banks of the Irtysh, marking the beginning of Pavlodar's history.",
+      "fullDescription": "In 1720, the Koryakovsky Outpost was founded on the banks of the Irtysh River, with its main task being to guard the salt mines at Lake Koryakovsky. This date is considered the beginning of the history of Pavlodar city. The outpost was built by decree of Peter I as part of strengthening the eastern borders of the Russian Empire. Over time, the outpost turned into a Cossack village, and then into a major trading center on the route from Russia to Central Asia."
+    },
+    "cityStatus": {
+      "title": "Granting City Status",
+      "description": "In 1861, by decree of Emperor Alexander II, the settlement was transformed into the city of Pavlodar.",
+      "fullDescription": "In 1861, by decree of Emperor Alexander II, the Koryakovskaya settlement was transformed into the city of Pavlodar. The name of the city came from the name of the heir to the throne Pavel (son of Alexander II) and the word 'dar' (gift). Thus, the name can be translated as 'Pavel's gift'. Obtaining city status contributed to the economic development of the region, the influx of population and the transformation of Pavlodar into an important trading hub on the Irtysh."
+    },
+    "uskFortress": {
+      "title": "Ust-Kamennaya Fortress",
+      "description": "In 1720, the Ust-Kamennaya Fortress was founded to protect the southern borders of Russia.",
+      "fullDescription": "Ust-Kamenogorsk was founded on May 1, 1720 as a military fortress at the confluence of the Ulba and Irtysh rivers. The fortress was built by an expedition led by Major I.M. Likharev by decree of Peter I to protect against Dzungar raids and control trade routes to Central Asia. The name of the city comes from its location at the mouth of the Kamenka River (now Ulba). The fortress became an important outpost of the Russian Empire in the Altai and the center of the mining industry development in the region."
+    },
+    "uskRegionalCenter": {
+      "title": "Regional Center",
+      "description": "In 1868, Ust-Kamenogorsk received the status of a district town.",
+      "fullDescription": "In 1868, Ust-Kamenogorsk received the status of a district town within Semipalatinsk region. The city developed as a trade and administrative center connecting Russia with Mongolia and China. In the late 19th century, an important trade route passed through the city, and mining and processing industries developed. In 1932, Ust-Kamenogorsk became the center of the East Kazakhstan region. During the Soviet period, the city turned into a major industrial center of non-ferrous metallurgy, energy and machine building."
+    },
+    "shymkentOrigin": {
+      "title": "Ancient Chimkent on the Silk Road",
+      "description": "Shymkent emerged as a fortress on the Great Silk Road in the 12th century.",
+      "fullDescription": "The city of Shymkent (formerly Chimkent) has an ancient history dating back to the 12th century. It was founded as a fortress on one of the branches of the Great Silk Road. The name of the city comes from the Turkic 'shym kent' - 'city of turf' or 'city with grass roofs'. In the Middle Ages, the city was an important trading center and a hub of caravan routes linking Central Asia with China and Europe. The strategic location at the crossroads of trade routes contributed to the development of crafts, trade and culture."
+    },
+    "shymkentCity": {
+      "title": "City of Republican Significance",
+      "description": "In 2018, Shymkent received the status of a city of republican significance.",
+      "fullDescription": "On June 19, 2018, Shymkent received the status of a city of republican significance, becoming the third city in Kazakhstan with such status after Almaty and the capital. This decision was made to accelerate the socio-economic development of the largest city in southern Kazakhstan. Shymkent was separated from the South Kazakhstan region and received direct subordination to the central government. The population of the city exceeded 1 million people. Today Shymkent is a dynamically developing city with modern infrastructure, a major industrial, commercial and cultural center."
+    },
+    "astanaFoundation": {
+      "title": "Akmola Order",
+      "description": "In 1830, the Akmola Order was founded, laying the foundation for the future capital.",
+      "fullDescription": "The history of Astana began in 1830, when the Akmola Order was founded - a Cossack fortification on the caravan route from Kokshetau to Semipalatinsk. The city status of Akmolinsk was obtained in 1862. Since 1868, the city became the center of Akmola region. The name 'Akmola' (Ақмола) translates from Kazakh as 'white grave' or 'white abundance'. In the Soviet period, the city was renamed Tselinograd (1961-1992) and became the center for the development of virgin lands. It was a major industrial and agricultural center of the Kazakh SSR."
+    },
+    "astanaCapital": {
+      "title": "New Capital of Kazakhstan",
+      "description": "In 1997, the capital was moved from Almaty to Akmola (Astana).",
+      "fullDescription": "On December 10, 1997, on the initiative of the First President Nursultan Nazarbayev, the capital of Kazakhstan was moved from Almaty to Akmola. In 1998, the city was renamed Astana ('capital' in Kazakh). The relocation of the capital was driven by strategic considerations: a more central location, greater development potential, improved balance between regions. Over 25 years, Astana has turned into an ultramodern metropolis with unique architecture, an international political and business center. In 2019-2022, the city was called Nur-Sultan. Today Astana is a symbol of Kazakhstan's independence and prosperity."
+    },
+    "aktauFoundation": {
+      "title": "Atomic City Shevchenko",
+      "description": "In 1963, the city of Shevchenko (now Aktau) was founded as a base for the atomic industry.",
+      "fullDescription": "Aktau was founded in 1963 as the city of Shevchenko - a closed city for workers in the atomic industry. The city was built to service the world's first industrial fast neutron reactor BN-350, which provided the region with electricity and desalinated seawater for the city's needs. Aktau became the only city in the world to be fully supplied with desalinated water from the Caspian Sea. The city was built in a desert area on the coast of the Caspian Sea and became an outpost for the development of Mangyshlak. The city's architecture reflected Soviet modernism: wide avenues, multi-story residential buildings, abundance of greenery."
+    },
+    "aktauRename": {
+      "title": "Renaming to Aktau",
+      "description": "In 1991, the city of Shevchenko was renamed Aktau.",
+      "fullDescription": "In 1991, after Kazakhstan gained independence, the city of Shevchenko was renamed Aktau (Ақтау), which translates from Kazakh as 'white mountain', after the chalk mountains on the Mangyshlak Peninsula. The renaming symbolized a return to Kazakh roots and traditions. After the reactor was shut down in 1999, the city refocused on the oil and gas industry, becoming the largest port on Kazakhstan's Caspian coast. Today Aktau is the administrative center of Mangystau Region, an important transport and logistics hub, center of oil production and tourism with unique natural landscapes."
+    }
   }
 } 

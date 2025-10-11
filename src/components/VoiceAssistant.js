@@ -8,12 +8,17 @@ import {
   Alert,
   Modal,
   Dimensions,
-  ScrollView
+  ScrollView,
+  Image,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
 import AIService from '../services/AIService';
+import VisionService from '../services/VisionService';
+import PlacesService from '../services/PlacesService';
 import { getRouteToAttraction } from '../utils/geoUtils';
 import { ATTRACTIONS, INTERESTS } from '../constants/data';
 
@@ -35,8 +40,9 @@ export const VoiceAssistant = ({
   const [transcribedText, setTranscribedText] = useState('');
   const [responseText, setResponseText] = useState('');
   const [pulseAnim] = useState(new Animated.Value(1));
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
 
-  // Pulse animation
   useEffect(() => {
     if (isListening || isProcessing) {
       const pulse = Animated.loop(
@@ -150,7 +156,31 @@ export const VoiceAssistant = ({
               navigation.navigate('Map', { selectedAttractions: attractionIds });
               closeModal();
             } else {
-              setResponseText(`В категории "${category}" ничего не найдено.`);
+              // Если не найдено в локальной базе, ищем через Google Places
+              setResponseText(`В локальной базе ничего не найдено. Ищу через Google Places...`);
+              try {
+                const googlePlaces = await PlacesService.searchByCategory(
+                  currentLocation || { latitude: 52.3000, longitude: 76.9500 },
+                  interest.id,
+                  15000
+                );
+
+                if (googlePlaces && googlePlaces.length > 0) {
+                  setResponseText(`Найдено ${googlePlaces.length} мест в категории "${category}" через Google Places. Показываю на карте.`);
+                  setTimeout(() => {
+                    navigation.navigate('Map', { 
+                      googlePlaces: googlePlaces,
+                      searchQuery: category 
+                    });
+                    closeModal();
+                  }, 1500);
+                } else {
+                  setResponseText(`В категории "${category}" ничего не найдено даже через Google Places.`);
+                }
+              } catch (error) {
+                console.error('Google Places search error:', error);
+                setResponseText(`В категории "${category}" ничего не найдено.`);
+              }
             }
           } else {
             setResponseText(`Категория "${category}" не найдена.`);
@@ -172,14 +202,119 @@ export const VoiceAssistant = ({
     setIsModalVisible(false);
     setTranscribedText('');
     setResponseText('');
+    setSelectedImage(null);
     if (isListening) {
       AIService.stopListening().catch(e => console.error("Error stopping on close", e));
     }
   };
 
+  const handleCameraPress = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Ошибка', 'Нужно разрешение на доступ к камере');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        base64: true
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+        await analyzeImage(result.assets[0].base64);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      Alert.alert('Ошибка', 'Не удалось открыть камеру');
+    }
+  };
+
+  const handleGalleryPress = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Ошибка', 'Нужно разрешение на доступ к галерее');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        base64: true
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+        await analyzeImage(result.assets[0].base64);
+      }
+    } catch (error) {
+      console.error('Gallery error:', error);
+      Alert.alert('Ошибка', 'Не удалось открыть галерею');
+    }
+  };
+
+  const analyzeImage = async (base64Image) => {
+    setIsAnalyzingImage(true);
+    setTranscribedText('Анализирую изображение...');
+
+    try {
+      const visionResult = await VisionService.analyzeLandmark(base64Image);
+
+      if (visionResult.success && visionResult.landmark) {
+        const landmarkName = visionResult.landmark.name;
+        setTranscribedText(`Распознано: ${landmarkName}`);
+
+        // Ищем в нашей базе
+        const foundAttraction = ATTRACTIONS.find(a => 
+          a.name.toLowerCase().includes(landmarkName.toLowerCase()) ||
+          landmarkName.toLowerCase().includes(a.name.toLowerCase())
+        );
+
+        if (foundAttraction) {
+          setResponseText(`Нашел достопримечательность: ${foundAttraction.name}. Открываю детали...`);
+          setTimeout(() => {
+            navigation.navigate('AttractionDetail', { attraction: foundAttraction });
+            closeModal();
+          }, 1500);
+        } else {
+          // Ищем через PlacesService
+          setResponseText(`Ищу информацию о "${landmarkName}" через Google Places...`);
+          const places = await PlacesService.searchPlaces(landmarkName, currentLocation, 50000);
+          
+          if (places && places.length > 0) {
+            setResponseText(`Найдено ${places.length} похожих мест. Показываю на карте...`);
+            setTimeout(() => {
+              navigation.navigate('Map', { 
+                googlePlaces: places,
+                searchQuery: landmarkName 
+              });
+              closeModal();
+            }, 1500);
+          } else {
+            setResponseText(`Найдена достопримечательность "${landmarkName}", но подробной информации в базе нет.`);
+          }
+        }
+      } else {
+        setResponseText('Не удалось распознать достопримечательность на фото. Попробуйте другое изображение.');
+      }
+    } catch (error) {
+      console.error('Vision analysis error:', error);
+      setResponseText('Ошибка при анализе изображения');
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
+
   const getStatusText = () => {
     if (isListening) return 'Говорите...';
-    if (isProcessing) return responseText; // Show intermediate statuses
+    if (isProcessing) return responseText; 
     if (transcribedText) return 'Запрос распознан!';
     return 'Нажмите чтобы говорить с ИИ';
   };
@@ -269,7 +404,35 @@ export const VoiceAssistant = ({
                 <Text style={[styles.hintText, { color: theme.colors.textSecondary }]}>
                   Попробуйте: "Найди маршрут к мечети" или "Покажи музеи"
                 </Text>
+                
+                {!isListening && !isProcessing && !isAnalyzingImage && (
+                  <View style={styles.imageButtonsContainer}>
+                    <TouchableOpacity 
+                      style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
+                      onPress={handleCameraPress}
+                    >
+                      <Ionicons name="camera" size={24} color={theme.colors.primary} />
+                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>Камера</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
+                      onPress={handleGalleryPress}
+                    >
+                      <Ionicons name="images" size={24} color={theme.colors.primary} />
+                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>Галерея</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
+
+              {selectedImage && (
+                <View style={[styles.imageSection, { backgroundColor: theme.colors.cardBackground }]}>
+                  <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+                    Загруженное фото:
+                  </Text>
+                  <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
+                </View>
+              )}
 
               {transcribedText ? (
                 <View style={[styles.textSection, { backgroundColor: theme.colors.cardBackground }]}>
@@ -293,7 +456,6 @@ export const VoiceAssistant = ({
                 </View>
               ) : null}
 
-              {/* Кнопка остановки записи */}
               {isListening && (
                 <View style={styles.actionButtonSection}>
                   <TouchableOpacity
@@ -447,5 +609,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  imageButtonsContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 12,
+  },
+  imageButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  imageButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  imageSection: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  selectedImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginTop: 8,
+    resizeMode: 'cover',
   },
 }); 

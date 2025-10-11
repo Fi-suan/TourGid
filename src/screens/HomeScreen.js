@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { AttractionCard } from '../components/AttractionCard';
 import { InterestSelector } from '../components/InterestSelector';
+import { RouteSelector } from '../components/RouteSelector';
 import { Header } from '../components/Header';
 import { VoiceAssistant } from '../components/VoiceAssistant';
 import { ATTRACTIONS, INTERESTS, REGIONS } from '../constants/data';
@@ -55,8 +56,6 @@ export const HomeScreen = ({ navigation }) => {
   const handleAIRouteGenerated = useCallback((routeData) => {
     console.log('AI Generated Route:', routeData);
     setAiGeneratedRoute(routeData);
-    
-    // Navigate to map with the generated route
     navigation.navigate('Map', {
       aiRoute: routeData,
       destination: routeData.destination
@@ -100,8 +99,6 @@ export const HomeScreen = ({ navigation }) => {
       setSelectedInterest(interest);
     }
   }, [selectedInterest]);
-
-  // 🆕 Обновленный эффект для фильтрации с учетом интересов
   React.useEffect(() => {
     let baseAttractions = attractions;
     
@@ -158,8 +155,6 @@ export const HomeScreen = ({ navigation }) => {
 
     translateAttractions();
   }, [language]);
-
-  // Отдельный useEffect для обновления переводов при смене языка
   useEffect(() => {
     const loadTranslations = async () => {
       const translations = {
@@ -170,7 +165,7 @@ export const HomeScreen = ({ navigation }) => {
         historicalFacts: await t('screens.historicalFacts.menuItem'),
         regionInfo: await t('screens.regionInfo.menuItem'),
         settings: await t('screens.settings.title'),
-        routes: await t('screens.routes.title') // Добавляем перевод для маршрутов
+        routes: await t('screens.routes.title') 
       };
       setSearchPlaceholder(translations.searchPlaceholder);
       setNoResultsText(translations.noResultsText);
@@ -201,7 +196,6 @@ export const HomeScreen = ({ navigation }) => {
       
       <TouchableWithoutFeedback onPress={dismissKeyboard}>
         <View style={styles.content}>
-          {/* Search with AI indicator */}
           <View style={[styles.searchContainer, { backgroundColor: theme.colors.cardBackground }]}>
             <Ionicons name="search" size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
             <TextInput
@@ -224,8 +218,6 @@ export const HomeScreen = ({ navigation }) => {
               </TouchableOpacity>
             ) : null}
           </View>
-          
-          {/* AI Route notification */}
           {aiGeneratedRoute && (
             <TouchableOpacity 
               style={[styles.aiRouteNotification, { backgroundColor: theme.colors.primary }]}
@@ -233,7 +225,7 @@ export const HomeScreen = ({ navigation }) => {
             >
               <Ionicons name="navigate" size={20} color="white" />
               <Text style={styles.aiRouteText}>
-                AI создал маршрут к {aiGeneratedRoute.destination.name}
+               {aiGeneratedRoute.destination.name}
               </Text>
               <Ionicons name="arrow-forward" size={16} color="white" />
             </TouchableOpacity>
@@ -245,7 +237,7 @@ export const HomeScreen = ({ navigation }) => {
             selectedInterest={selectedInterest}
           />
           
-          {/* Кнопка Готовые маршруты и индикатор региона теперь убраны */}
+          <RouteSelector navigation={navigation} />
           
           {locationLoading && (
             <View style={styles.locationLoading}>
@@ -288,8 +280,6 @@ export const HomeScreen = ({ navigation }) => {
           )}
         </View>
       </TouchableWithoutFeedback>
-
-      {/* Voice Assistant Floating Button */}
       <VoiceAssistant
         currentLocation={userLocation}
         attractionsData={attractions}
@@ -313,7 +303,6 @@ export const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {/* Пункты меню */}
         <TouchableOpacity 
           style={styles.menuItem}
           onPress={() => handleMenuItemPress('Routes')}

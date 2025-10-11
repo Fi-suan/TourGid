@@ -14,7 +14,6 @@ const LanguageContext = createContext();
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('ru');
 
-  // Load saved language
   useEffect(() => {
     const loadLanguage = async () => {
       try {
@@ -30,7 +29,6 @@ export const LanguageProvider = ({ children }) => {
     loadLanguage();
   }, []);
 
-  // Change language and save preference
   const changeLanguage = async (lang) => {
     try {
       await AsyncStorage.setItem('language', lang);

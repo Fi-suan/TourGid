@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as SplashScreen from 'expo-splash-screen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { AttractionDetailScreen } from './src/screens/AttractionDetailScreen';
 import { HistoricalFactsScreen } from './src/screens/HistoricalFactsScreen';
@@ -13,18 +15,49 @@ import TranslationService from './src/services/TranslationService';
 import { RoutesScreen } from './src/screens/RoutesScreen';
 import { RouteDetailScreen } from './src/screens/RouteDetailScreen';
 
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
+
 const Stack = createNativeStackNavigator();
 
 function AppContent() {
   const { language } = useLanguage();
+  const [appIsReady, setAppIsReady] = React.useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Simulate loading resources
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Preload translations or other resources here
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
 
   return (
-    <NavigationContainer key={language}>
-      <Stack.Navigator
-        screenOptions={({ route }) => ({
-          headerBackTitle: '',
-        })}
-      >
+    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <NavigationContainer key={language}>
+        <Stack.Navigator
+          screenOptions={({ route }) => ({
+            headerBackTitle: '',
+          })}
+        >
         <Stack.Screen 
           name="Home" 
           component={HomeScreen}
@@ -69,15 +102,18 @@ function AppContent() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </View>
   );
 }
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AppContent />
-      </LanguageProvider>
-    </ThemeProvider>
+    <View style={{ flex: 1 }} onLayout={() => {}}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
+      </ThemeProvider>
+    </View>
   );
 }

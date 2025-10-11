@@ -12,48 +12,52 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
+import { REGIONS } from '../constants/data';
 
 const { width } = Dimensions.get('window');
 
-export const RegionInfoScreen = () => {
+export const RegionInfoScreen = ({ route }) => {
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
+  
+  const regionId = route?.params?.regionId || 'pavlodar';
+  const regionData = REGIONS.find(r => r.id === regionId) || REGIONS[0];
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Image 
-        source={require('../assets/pavlodar/kyzyltau-reserve.jpg')} 
+        source={require('../assets/pavlodar-region.jpg')} 
         style={styles.headerImage}
       />
       
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          {t('screens.regionInfo.title')}
+          {regionData.name}
         </Text>
         
         <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
           <View style={styles.infoRow}>
             <Ionicons name="location" size={20} color={theme.colors.primary} />
             <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              {t('regionInfo.description')}
+              {regionData.description}
             </Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="people" size={20} color={theme.colors.primary} />
             <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              {t('regionInfo.population')}
+              Население: {regionData.population}
             </Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="thermometer" size={20} color={theme.colors.primary} />
             <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              {t('regionInfo.climate')}
+              Климат: {regionData.climate}
             </Text>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="business" size={20} color={theme.colors.primary} />
+            <Ionicons name="calendar" size={20} color={theme.colors.primary} />
             <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              {t('regionInfo.economy')}
+              Основан: {regionData.founded}
             </Text>
           </View>
         </View>

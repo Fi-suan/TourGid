@@ -15,7 +15,7 @@ import { ROUTES, ATTRACTIONS } from '../constants/data';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
-export const RouteSelector = ({ navigation }) => {
+export const RouteSelector = ({ navigation, regionId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
   
@@ -34,6 +34,11 @@ export const RouteSelector = ({ navigation }) => {
   const languageContext = useLanguage();
   const t = (key) => languageContext?.t?.(key) || key;
 
+  // Фильтруем маршруты по региону
+  const filteredRoutes = regionId 
+    ? ROUTES.filter(route => route.regionId === regionId)
+    : ROUTES;
+
   const handleRouteSelect = (route) => {
     setSelectedRoute(route);
     setModalVisible(true);
@@ -50,12 +55,17 @@ export const RouteSelector = ({ navigation }) => {
     return ATTRACTIONS.find(attr => attr.id === id);
   };
 
+  // Если нет маршрутов для этого региона, не показываем секцию
+  if (filteredRoutes.length === 0) {
+    return null;
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('popularRoutes')}</Text>
       
       <FlatList
-        data={ROUTES}
+        data={filteredRoutes}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}

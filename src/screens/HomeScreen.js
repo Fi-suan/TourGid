@@ -13,7 +13,8 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   Keyboard,
-  Alert
+  Alert,
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -29,7 +30,7 @@ import { useLanguage } from '../context/LanguageContext';
 import TranslationService from '../services/TranslationService';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight;
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -40,12 +41,16 @@ export const HomeScreen = ({ navigation }) => {
   const [attractions, setAttractions] = useState([]);
   const [filteredAttractions, setFilteredAttractions] = useState([]);
   const [selectedInterest, setSelectedInterest] = useState(null);
+  const [selectedRegionId, setSelectedRegionId] = useState('pavlodar'); // Default region
+  const [translatedAttractionsCache, setTranslatedAttractionsCache] = useState({});
+  const [currentLanguage, setCurrentLanguage] = useState(language);
   const [menuAnim] = useState(new Animated.Value(-width));
   const [aiGeneratedRoute, setAiGeneratedRoute] = useState(null);
   const searchInputRef = useRef(null);
   const [currentRegion, setCurrentRegion] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [regionLoading, setRegionLoading] = useState(false);
   const [searchPlaceholder, setSearchPlaceholder] = useState('');
   const [routesButtonText, setRoutesButtonText] = useState('');
   const [regionLoadingText, setRegionLoadingText] = useState('');
@@ -99,6 +104,17 @@ export const HomeScreen = ({ navigation }) => {
       setSelectedInterest(interest);
     }
   }, [selectedInterest]);
+
+  const handleRegionSelect = useCallback((regionId) => {
+    setRegionLoading(true);
+    setSelectedRegionId(regionId);
+    setSearchQuery('');
+    setSelectedInterest(null);
+    // Небольшая задержка для синхронизации отображения
+    setTimeout(() => {
+      setRegionLoading(false);
+    }, 100);
+  }, []);
   React.useEffect(() => {
     let baseAttractions = attractions;
     
@@ -142,19 +158,28 @@ export const HomeScreen = ({ navigation }) => {
     }
   }, [attractions]);
 
+  // Переводы только при смене языка
   useEffect(() => {
-    const translateAttractions = () => {
+    if (language !== currentLanguage || !translatedAttractionsCache[language]) {
       const translated = ATTRACTIONS.map(attraction => ({
         ...attraction,
         name: t(attraction.name),
         description: t(attraction.description)
       }));
-      setAttractions(translated);
-      setFilteredAttractions(translated);
-    };
-
-    translateAttractions();
+      setTranslatedAttractionsCache(prev => ({ ...prev, [language]: translated }));
+      setCurrentLanguage(language);
+    }
   }, [language]);
+
+  // Фильтрация по региону - без перевода
+  useEffect(() => {
+    const cachedTranslated = translatedAttractionsCache[language];
+    if (cachedTranslated) {
+      const regionAttractions = cachedTranslated.filter(a => a.regionId === selectedRegionId);
+      setAttractions(regionAttractions);
+      setFilteredAttractions(regionAttractions);
+    }
+  }, [selectedRegionId, translatedAttractionsCache, language]);
   useEffect(() => {
     const loadTranslations = async () => {
       const translations = {
@@ -175,9 +200,9 @@ export const HomeScreen = ({ navigation }) => {
     loadTranslations();
   }, [language]);
 
-  const handleMenuItemPress = (screenName) => {
+  const handleMenuItemPress = (screenName, params = {}) => {
     toggleMenu(false);
-    navigation.navigate(screenName);
+    navigation.navigate(screenName, params);
   };
 
   const dismissKeyboard = () => {
@@ -231,52 +256,113 @@ export const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
           
+          {/* Селектор регионов */}
+          <View style={styles.regionSelectorContainer}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>Регионы:</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.regionScroll}
+            >
+              {REGIONS.map((region) => (
+                <TouchableOpacity
+                  key={region.id}
+                  style={[
+                    styles.regionButton,
+                    { 
+                      backgroundColor: selectedRegionId === region.id 
+                        ? theme.colors.primary 
+                        : theme.colors.cardBackground,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  onPress={() => handleRegionSelect(region.id)}
+                >
+                  <Text 
+                    style={[
+                      styles.regionButtonText,
+                      { 
+                        color: selectedRegionId === region.id 
+                          ? '#FFFFFF' 
+                          : theme.colors.text 
+                      }
+                    ]}
+                  >
+                    {region.mainCity}
+                  </Text>
+                  <Text 
+                    style={[
+                      styles.regionButtonCount,
+                      { 
+                        color: selectedRegionId === region.id 
+                          ? '#FFFFFF' 
+                          : theme.colors.textSecondary 
+                      }
+                    ]}
+                  >
+                    {region.attractions_count} мест
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          
           <InterestSelector 
             interests={INTERESTS} 
             onSelect={handleInterestSelect}
             selectedInterest={selectedInterest}
           />
           
-          <RouteSelector navigation={navigation} />
-          
-          {locationLoading && (
+          {regionLoading ? (
             <View style={styles.locationLoading}>
               <Text style={[styles.locationLoadingText, { color: theme.colors.textSecondary }]}>
-                {t('screens.home.determiningLocation')}
+                Загрузка...
               </Text>
             </View>
-          )}
-          
-          {filteredAttractions.length > 0 ? (
-            <FlatList
-              data={filteredAttractions}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <AttractionCard item={item} interests={INTERESTS} />
-              )}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-            />
           ) : (
-            <View style={styles.noResultsContainer}>
-              <Text style={[styles.noResultsText, { color: theme.colors.textSecondary }]}>
-                {noResultsText || (searchQuery ? `Ничего не найдено по запросу "${searchQuery}"` : t('screens.home.noAttractionsFound'))}
-              </Text>
-              {currentRegion && (
-                <TouchableOpacity 
-                  style={styles.showAllButton}
-                  onPress={() => {
-                    setSearchQuery('');
-                    setSelectedInterest(null);
-                    setFilteredAttractions(ATTRACTIONS.filter(a => a.regionId === currentRegion.id));
-                  }}
-                >
-                  <Text style={[styles.showAllButtonText, { color: theme.colors.primary }]}>
-                    {showAllText || t('screens.home.showAllInRegion', { regionName: currentRegion.name })}
+            <>
+              <RouteSelector navigation={navigation} regionId={selectedRegionId} />
+              
+              {locationLoading && (
+                <View style={styles.locationLoading}>
+                  <Text style={[styles.locationLoadingText, { color: theme.colors.textSecondary }]}>
+                    {t('screens.home.determiningLocation')}
                   </Text>
-                </TouchableOpacity>
+                </View>
               )}
-            </View>
+              
+              {filteredAttractions.length > 0 ? (
+                <FlatList
+                  data={filteredAttractions}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <AttractionCard item={item} interests={INTERESTS} />
+                  )}
+                  contentContainerStyle={styles.listContent}
+                  showsVerticalScrollIndicator={false}
+                />
+              ) : (
+                <View style={styles.noResultsContainer}>
+                  <Text style={[styles.noResultsText, { color: theme.colors.textSecondary }]}>
+                    {noResultsText || (searchQuery ? `Ничего не найдено по запросу "${searchQuery}"` : t('screens.home.noAttractionsFound'))}
+                  </Text>
+                  {currentRegion && (
+                    <TouchableOpacity 
+                      style={styles.showAllButton}
+                      onPress={() => {
+                        setSearchQuery('');
+                        setSelectedInterest(null);
+                        setFilteredAttractions(ATTRACTIONS.filter(a => a.regionId === currentRegion.id));
+                      }}
+                    >
+                      <Text style={[styles.showAllButtonText, { color: theme.colors.primary }]}>
+                        {showAllText || t('screens.home.showAllInRegion', { regionName: currentRegion.name })}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </>
           )}
         </View>
       </TouchableWithoutFeedback>
@@ -305,7 +391,7 @@ export const HomeScreen = ({ navigation }) => {
         
         <TouchableOpacity 
           style={styles.menuItem}
-          onPress={() => handleMenuItemPress('Routes')}
+          onPress={() => handleMenuItemPress('Routes', { regionId: selectedRegionId })}
         >
           <Ionicons name="map" size={24} color={theme.colors.primary} style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.text }]}>
@@ -315,7 +401,7 @@ export const HomeScreen = ({ navigation }) => {
 
         <TouchableOpacity 
           style={styles.menuItem}
-          onPress={() => handleMenuItemPress('HistoricalFacts')}
+          onPress={() => handleMenuItemPress('HistoricalFacts', { regionId: selectedRegionId })}
         >
           <Ionicons name="book" size={24} color={theme.colors.primary} style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.text }]}>
@@ -325,7 +411,7 @@ export const HomeScreen = ({ navigation }) => {
         
         <TouchableOpacity 
           style={styles.menuItem}
-          onPress={() => handleMenuItemPress('RegionInfo')}
+          onPress={() => handleMenuItemPress('RegionInfo', { regionId: selectedRegionId })}
         >
           <Ionicons name="information-circle" size={24} color={theme.colors.primary} style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.text }]}>
@@ -419,16 +505,44 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 100, // Extra space for floating button
   },
+  regionSelectorContainer: {
+    marginBottom: 15,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  regionScroll: {
+    marginHorizontal: -5,
+  },
+  regionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  regionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  regionButtonCount: {
+    fontSize: 11,
+  },
   sideMenu: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: width * 0.8,
-    height: '100%',
-    zIndex: 2,
-    paddingTop: STATUSBAR_HEIGHT,
+    width: width * 0.75,
+    height: height,
+    zIndex: 2000,
+    paddingTop: Platform.OS === 'ios' ? 50 : STATUSBAR_HEIGHT + 10,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   menuHeader: {
     flexDirection: 'row',

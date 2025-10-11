@@ -140,7 +140,7 @@ export const ATTRACTIONS = [
     location: 'Набережная им. Габита Мусрепова',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/irtysh-embankment.jpg'),
-    categories: ['nature', 'recreation', 'scenic'],
+    categories: ['nature', 'architecture', 'culture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -169,7 +169,7 @@ export const ATTRACTIONS = [
     location: 'ул. Павла Васильева, 78',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/vasiliev-house-museum.jpg'),
-    categories: ['culture', 'history', 'education'],
+    categories: ['culture', 'history', 'architecture'],
     workingHours: { 
       weekdays: '09:00 - 18:00', 
       weekend: '10:00 - 17:00', 
@@ -199,7 +199,7 @@ export const ATTRACTIONS = [
     location: 'ул. Академика Сатпаева, 40',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['history', 'culture', 'education'],
+    categories: ['history', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '09:00 - 18:00', 
       weekend: '10:00 - 17:00', 
@@ -229,7 +229,7 @@ export const ATTRACTIONS = [
     location: 'ул. Ленина, 44',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/chekhov-theater.jpg'),
-    categories: ['culture', 'entertainment', 'architecture'],
+    categories: ['culture', 'history', 'architecture'],
     workingHours: { 
       weekdays: '10:00 - 19:00', 
       weekend: '10:00 - 19:00', 
@@ -259,7 +259,7 @@ export const ATTRACTIONS = [
     location: 'ул. Толстого, 46',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/music-college.jpg'),
-    categories: ['culture', 'education', 'architecture'],
+    categories: ['culture', 'history', 'architecture'],
     workingHours: { 
       weekdays: '08:00 - 18:00', 
       weekend: '10:00 - 16:00', 
@@ -288,7 +288,7 @@ export const ATTRACTIONS = [
     location: 'п. Жасыбай, 70 км от Павлодара',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/jasybai-resort.jpg'),
-    categories: ['nature', 'recreation', 'health'],
+    categories: ['nature', 'culture', 'history'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -317,7 +317,7 @@ export const ATTRACTIONS = [
     location: 'Баянаульский район, 100 км от Павлодара',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/bayanaul-park.jpg'),
-    categories: ['nature', 'adventure', 'scenic'],
+    categories: ['nature', 'history', 'culture'],
     workingHours: { 
       weekdays: '08:00 - 20:00', 
       weekend: '08:00 - 20:00', 
@@ -347,7 +347,7 @@ export const ATTRACTIONS = [
     location: 'Кызылтауский заказник, 80 км от Павлодара',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/kyzyltau-reserve.jpg'),
-    categories: ['nature', 'adventure', 'scenic'],
+    categories: ['nature', 'history', 'architecture'],
     workingHours: { 
       weekdays: '08:00 - 20:00', 
       weekend: '08:00 - 20:00', 
@@ -376,7 +376,7 @@ export const ATTRACTIONS = [
     location: '45 км к юго-востоку от Павлодара',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/sabyndykol-lake.jpg'),
-    categories: ['nature', 'recreation', 'scenic'],
+    categories: ['nature', 'culture', 'history'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -434,7 +434,7 @@ export const ATTRACTIONS = [
     location: 'Аккулинский район, 90 км от Павлодара',
     regionId: 'pavlodar',
     image: require('../assets/pavlodar/myrzashoky.jpg'),
-    categories: ['history', 'culture', 'unique'],
+    categories: ['history', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -465,7 +465,7 @@ export const ATTRACTIONS = [
     location: 'ул. Кабанбай батыра, 98',
     regionId: 'ust-kamenogorsk',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'), // TODO: заменить на реальное фото
-    categories: ['culture', 'education', 'history'],
+    categories: ['culture', 'architecture', 'history'],
     workingHours: { 
       weekdays: '10:00 - 18:00', 
       weekend: '10:00 - 17:00', 
@@ -494,7 +494,7 @@ export const ATTRACTIONS = [
     location: 'пр. Абая',
     regionId: 'ust-kamenogorsk',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['recreation', 'nature', 'entertainment'],
+    categories: ['nature', 'architecture', 'culture'],
     workingHours: { 
       weekdays: '09:00 - 23:00', 
       weekend: '09:00 - 23:00', 
@@ -552,7 +552,7 @@ export const ATTRACTIONS = [
     location: '40 км от Усть-Каменогорска',
     regionId: 'ust-kamenogorsk',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'recreation', 'scenic'],
+    categories: ['nature', 'history', 'architecture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -581,7 +581,7 @@ export const ATTRACTIONS = [
     location: 'Набережная Иртыша',
     regionId: 'ust-kamenogorsk',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'recreation', 'scenic'],
+    categories: ['nature', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -612,7 +612,7 @@ export const ATTRACTIONS = [
     location: 'ул. Тауке хана',
     regionId: 'shymkent',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['recreation', 'nature', 'entertainment'],
+    categories: ['nature', 'architecture', 'culture'],
     workingHours: { 
       weekdays: '08:00 - 23:00', 
       weekend: '08:00 - 23:00', 
@@ -641,7 +641,7 @@ export const ATTRACTIONS = [
     location: 'ул. Байтурсынова, 2',
     regionId: 'shymkent',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['history', 'culture', 'education'],
+    categories: ['history', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '09:00 - 18:00', 
       weekend: '10:00 - 17:00', 
@@ -699,7 +699,7 @@ export const ATTRACTIONS = [
     location: '20 км от Шымкента',
     regionId: 'shymkent',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'adventure', 'scenic'],
+    categories: ['nature', 'history', 'culture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -728,7 +728,7 @@ export const ATTRACTIONS = [
     location: '40 км от Шымкента, Толебийский район',
     regionId: 'shymkent',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'adventure', 'scenic'],
+    categories: ['nature', 'architecture', 'history'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -759,7 +759,7 @@ export const ATTRACTIONS = [
     location: 'проспект Нұрлы жол, 11',
     regionId: 'astana',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['architecture', 'culture', 'scenic'],
+    categories: ['architecture', 'culture', 'nature'],
     workingHours: { 
       weekdays: '10:00 - 21:00', 
       weekend: '10:00 - 21:00', 
@@ -817,7 +817,7 @@ export const ATTRACTIONS = [
     location: 'проспект Тәуелсіздік, 57',
     regionId: 'astana',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['architecture', 'culture', 'unique'],
+    categories: ['architecture', 'culture', 'history'],
     workingHours: { 
       weekdays: '10:00 - 19:00', 
       weekend: '10:00 - 19:00', 
@@ -846,7 +846,7 @@ export const ATTRACTIONS = [
     location: 'проспект Түркістан, 37',
     regionId: 'astana',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['shopping', 'entertainment', 'architecture'],
+    categories: ['culture', 'history', 'architecture'],
     workingHours: { 
       weekdays: '10:00 - 22:00', 
       weekend: '10:00 - 22:00', 
@@ -875,7 +875,7 @@ export const ATTRACTIONS = [
     location: 'площадь Независимости, 54',
     regionId: 'astana',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['history', 'culture', 'education'],
+    categories: ['history', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '10:00 - 19:00', 
       weekend: '10:00 - 19:00', 
@@ -907,7 +907,7 @@ export const ATTRACTIONS = [
     location: '80 км от Актау, урочище Огланды',
     regionId: 'aktau',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['religion', 'history', 'unique'],
+    categories: ['religion', 'history', 'culture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -936,7 +936,7 @@ export const ATTRACTIONS = [
     location: '300 км от Актау, плато Устюрт',
     regionId: 'aktau',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'scenic', 'adventure'],
+    categories: ['nature', 'history', 'culture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -965,7 +965,7 @@ export const ATTRACTIONS = [
     location: '170 км от Актау',
     regionId: 'aktau',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'scenic', 'adventure'],
+    categories: ['nature', 'architecture', 'history'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -994,7 +994,7 @@ export const ATTRACTIONS = [
     location: 'Набережная Актау',
     regionId: 'aktau',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['nature', 'recreation', 'scenic'],
+    categories: ['nature', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '24/7', 
       weekend: '24/7', 
@@ -1023,7 +1023,7 @@ export const ATTRACTIONS = [
     location: 'мкр. 15, дом 27',
     regionId: 'aktau',
     image: require('../assets/pavlodar/pavlodar-museum.jpg'),
-    categories: ['history', 'culture', 'education'],
+    categories: ['history', 'culture', 'architecture'],
     workingHours: { 
       weekdays: '09:00 - 18:00', 
       weekend: '10:00 - 17:00', 
@@ -1052,14 +1052,7 @@ export const INTERESTS = [
   { id: 'history', name: 'interests.history', icon: 'book' },
   { id: 'culture', name: 'interests.culture', icon: 'color-palette' },
   { id: 'nature', name: 'interests.nature', icon: 'leaf' },
-  { id: 'architecture', name: 'interests.architecture', icon: 'business' },
-  { id: 'recreation', name: 'interests.recreation', icon: 'happy' },
-  { id: 'entertainment', name: 'interests.entertainment', icon: 'game-controller' },
-  { id: 'scenic', name: 'interests.scenic', icon: 'camera' },
-  { id: 'unique', name: 'interests.unique', icon: 'star' },
-  { id: 'adventure', name: 'interests.adventure', icon: 'trail-sign' },
-  { id: 'shopping', name: 'interests.shopping', icon: 'bag' },
-  { id: 'education', name: 'interests.education', icon: 'school' }
+  { id: 'architecture', name: 'interests.architecture', icon: 'business' }
 ];
 
 export const ROUTES = [

@@ -4,9 +4,14 @@ import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
 import { ROUTES } from '../constants/data';
 
-export const RoutesScreen = ({ navigation }) => {
+export const RoutesScreen = ({ navigation, route }) => {
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
+  
+  const regionId = route?.params?.regionId;
+  const displayedRoutes = regionId
+    ? ROUTES.filter(r => r.regionId === regionId)
+    : ROUTES;
 
   const renderRouteItem = ({ item }) => (
     <TouchableOpacity 
@@ -21,7 +26,7 @@ export const RoutesScreen = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <FlatList
-        data={ROUTES}
+        data={displayedRoutes}
         keyExtractor={(item) => item.id}
         renderItem={renderRouteItem}
       />

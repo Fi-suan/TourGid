@@ -564,15 +564,5 @@
     "routes": "Маршруты",
     "history": "История",
     "regionInfo": "Об области"
-  },
-  "screens": {
-    "settings": {
-      "title": "Настройки",
-      "languageSection": "Язык",
-      "themeSection": "Тема",
-      "themeLight": "Светлая",
-      "themeDark": "Тёмная",
-      "themeSystem": "Системная"
-    }
   }
 } 

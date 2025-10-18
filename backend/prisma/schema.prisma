@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Region {
+  id             String           @id @default(cuid())
+  name           String
+  description    String           @db.Text
+  mainCity       String
+  founded        String
+  mapImage       String
+  photoUrl       String?
+  attractions    Attraction[]
+  routes         Route[]
+  historicalFacts HistoricalFact[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Attraction {
+  id             String     @id @default(cuid())
+  name           String
+  description    String     @db.Text
+  location       String
+  image          String?
+  photoUrl       String?
+  coordinates    Json
+  workingHours   Json
+  contacts       Json
+  historicalInfo String     @db.Text
+  tips           String[]
+  rating         Float?
+  regionId       String
+  region         Region     @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  categories     Category[]
+  routes         Route[]    @relation("AttractionsOnRoutes")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([regionId])
+}
+
+model Category {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  icon        String
+  attractions Attraction[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Route {
+  id                   String       @id @default(cuid())
+  name                 String
+  description          String       @db.Text
+  duration             String
+  difficulty           String
+  recommendedTransport String
+  photoUrl             String?
+  regionId             String
+  region               Region       @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  attractions          Attraction[] @relation("AttractionsOnRoutes")
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([regionId])
+}
+
+model HistoricalFact {
+  id          String   @id @default(cuid())
+  year        String
+  title       String
+  description String   @db.Text
+  image       String?
+  photoUrl    String?
+  regionId    String
+  region      Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([regionId])
+}

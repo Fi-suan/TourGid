@@ -212,6 +212,30 @@ class GoogleAPIService {
     }
   }
 
+  // Places API - текстовый поиск
+  async textSearch(query, location = null, radius = 5000) {
+    try {
+      let url = `${this.placesUrl}/textsearch/json?query=${encodeURIComponent(query)}&key=${this.apiKey}&language=ru`;
+      
+      if (location) {
+        url += `&location=${location.latitude},${location.longitude}&radius=${radius}`;
+      }
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Text Search API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`Text search for "${query}": ${data.results?.length || 0} results`);
+      return data.results || [];
+    } catch (error) {
+      console.error('Text search error:', error);
+      return [];
+    }
+  }
+
   // Places API - детали места
   async getPlaceDetails(placeId) {
     try {

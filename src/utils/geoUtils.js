@@ -1,9 +1,7 @@
 // Геоутилиты для расчетов расстояний и маршрутов
 
 import * as Location from 'expo-location';
-
-// Google Maps API ключ
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDHLPatV3_3xG1cdx0nvEhxCdn2XEgnzac';
+import * as ApiService from '../services/ApiService';
 
 // Координаты регионов
 const REGIONS = [
@@ -21,55 +19,33 @@ const REGIONS = [
   }
 ];
 
-// 🆕 Google Directions API для реальных маршрутов
+// 🆕 Google Directions API для реальных маршрутов (через бэкенд)
 export async function getDirectionsFromGoogle(origin, destination, waypoints = [], travelMode = 'WALKING') {
   try {
-    // Формируем URL для Google Directions API
+    // Формируем параметры для API запроса
     const originStr = `${origin.latitude},${origin.longitude}`;
     const destStr = `${destination.latitude},${destination.longitude}`;
     
     let waypointsStr = '';
     if (waypoints && waypoints.length > 0) {
       const waypointCoords = waypoints.map(wp => `${wp.latitude},${wp.longitude}`);
-      waypointsStr = `&waypoints=optimize:true|${waypointCoords.join('|')}`;
+      waypointsStr = waypointCoords.join('|');
     }
 
-    const url = `https://maps.googleapis.com/maps/api/directions/json?` +
-      `origin=${originStr}&destination=${destStr}${waypointsStr}` +
-      `&mode=${travelMode.toLowerCase()}&language=ru&region=kz` +
-      `&key=${GOOGLE_MAPS_API_KEY}`;
-
-    console.log('🗺️ Requesting directions from Google API...');
+    console.log('🗺️ Requesting directions via backend...');
     
-    // Устанавливаем таймаут для API запроса
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // Увеличил до 8 секунд
-
-    const response = await fetch(url, { 
-      signal: controller.signal,
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.warn(`❌ Google API HTTP error: ${response.status} - ${response.statusText}`);
-      console.warn('📝 Нужно проверить:');
-      console.warn('1. Включен ли Directions API в Google Cloud Console');
-      console.warn('2. Настроена ли оплата (billing) для проекта');
-      console.warn('3. Достаточно ли квоты для API вызовов');
-      return createFallbackRoute(origin, destination, waypoints);
-    }
-
-    const data = await response.json();
+    // 🔥 ИСПОЛЬЗУЕМ БЭКЕНД ВМЕСТО ПРЯМОГО ВЫЗОВА
+    const data = await ApiService.getDirections(
+      originStr, 
+      destStr, 
+      waypointsStr, 
+      travelMode.toLowerCase()
+    );
 
     if (data.status === 'OK' && data.routes && data.routes.length > 0) {
       const route = data.routes[0];
       
-      console.log('✅ Google Directions API успешно работает!');
+      console.log('✅ Directions API работает через бэкенд!');
       return {
         success: true,
         route: {
@@ -124,11 +100,7 @@ export async function getDirectionsFromGoogle(origin, destination, waypoints = [
       return createFallbackRoute(origin, destination, waypoints);
     }
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.warn('⏱️ Google API таймаут (8 сек). Проверьте интернет соединение');
-    } else {
-      console.warn('🌐 Google API недоступен:', error.message);
-    }
+    console.warn('🌐 Backend API недоступен:', error.message);
     console.warn('🔄 Используем резервный алгоритм маршрутизации');
     return createFallbackRoute(origin, destination, waypoints);
   }
@@ -353,29 +325,10 @@ export function analyzeRoute(routeResult) {
 // 🆕 Поиск ближайших остановок общественного транспорта
 export async function findNearbyTransitStops(location, radius = 500) {
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?` +
-      `location=${location.latitude},${location.longitude}` +
-      `&radius=${radius}&type=transit_station&language=ru` +
-      `&key=${GOOGLE_MAPS_API_KEY}`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 'OK') {
-      return data.results.map(place => ({
-        name: place.name,
-        location: {
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng
-        },
-        distance: calculateDistance(
-          location.latitude, location.longitude,
-          place.geometry.location.lat, place.geometry.location.lng
-        ),
-        types: place.types,
-        rating: place.rating || 0
-      }));
-    }
+    // TODO: Создать эндпоинт на бэкенде для поиска мест
+    // Пока что возвращаем пустой массив
+    console.warn('⚠️ findNearbyTransitStops: эндпоинт не реализован на бэкенде');
+    return [];
   } catch (error) {
     console.error('Error finding transit stops:', error);
   }

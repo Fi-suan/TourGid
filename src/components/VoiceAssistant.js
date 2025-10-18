@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -10,40 +10,49 @@ import {
   Dimensions,
   ScrollView,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { Audio } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useRegion } from '../context/RegionContext';
 import TranslationService from '../services/TranslationService';
-import AIService from '../services/AIService';
 import VisionService from '../services/VisionService';
-import PlacesService from '../services/PlacesService';
-import { getRouteToAttraction } from '../utils/geoUtils';
-import { ATTRACTIONS, INTERESTS } from '../constants/data';
+import * as ApiService from '../services/ApiService';
 
 const { width, height } = Dimensions.get('window');
 
-export const VoiceAssistant = ({ 
-  currentLocation, 
-  attractionsData, 
-  onRouteGenerated, 
-  navigation,
+export const VoiceAssistant = ({
   style 
 }) => {
   const { theme } = useTheme();
+  const { selectedRegionId } = useRegion();
+  const navigation = useNavigation();
   const t = (key, params) => TranslationService.translate(key, params);
-  
+
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [transcribedText, setTranscribedText] = useState('');
   const [responseText, setResponseText] = useState('');
+  const [error, setError] = useState(null);
   const [pulseAnim] = useState(new Animated.Value(1));
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [volume, setVolume] = useState(0);
+  
+  const recordingRef = useRef(null);
+  const animatedVolume = useRef(new Animated.Value(0)).current;
+
+  const [attractions, setAttractions] = useState([]);
+  const [interests, setInterests] = useState([]);
 
   useEffect(() => {
+    // Pulse animation
     if (isListening || isProcessing) {
       const pulse = Animated.loop(
         Animated.sequence([
@@ -56,9 +65,38 @@ export const VoiceAssistant = ({
     }
   }, [isListening, isProcessing]);
 
+  useEffect(() => {
+    // Volume animation
+    Animated.timing(animatedVolume, {
+      toValue: volume,
+      duration: 100,
+      useNativeDriver: false,
+    }).start();
+  }, [volume]);
+
+  useEffect(() => {
+    // Fetch attractions and interests when the component is first used
+    const fetchData = async () => {
+      try {
+        const [attractionsData, interestsData] = await Promise.all([
+          ApiService.getAttractions(selectedRegionId),
+          ApiService.getInterests()
+        ]);
+        setAttractions(attractionsData);
+        setInterests(interestsData);
+      } catch (e) {
+        console.error("Failed to fetch data for Voice Assistant:", e);
+        // Handle error if necessary
+      }
+    };
+    if (isModalVisible) {
+      fetchData();
+    }
+  }, [isModalVisible, selectedRegionId]);
+
   const handleVoiceButtonPress = async () => {
     if (isListening) {
-      await stopListening();
+      await stopListeningAndProcess();
     } else {
       await startListening();
     }
@@ -69,38 +107,93 @@ export const VoiceAssistant = ({
       setIsModalVisible(true);
       setTranscribedText('');
       setResponseText('');
+      setError(null);
       setIsListening(true);
-
-      await AIService.startListening((error) => {
-          console.error('Voice recognition error:', error);
-          setIsListening(false);
-          Alert.alert('Ошибка', 'Не удалось начать запись. Проверьте разрешения микрофона.');
-        });
+      setVolume(0);
+  
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        setError(t('voiceAssistant.permissionDenied'));
+        setIsListening(false);
+        return;
+      }
+  
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+  
+      const { recording } = await Audio.Recording.createAsync(
+        {
+          android: {
+            extension: '.m4a',
+            outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+            audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+            sampleRate: 16000,
+            numberOfChannels: 1,
+            bitRate: 128000,
+          },
+          ios: {
+            extension: '.m4a',
+            outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
+            audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+            sampleRate: 16000,
+            numberOfChannels: 1,
+            bitRate: 128000,
+          },
+        },
+        (status) => {
+          if (status.isRecording && status.metering) {
+            const normalizedVolume = Math.max(0, Math.min(1, 1 + status.metering / 40));
+            setVolume(normalizedVolume);
+          }
+        },
+        100
+      );
+      
+      recordingRef.current = recording;
+      console.log('🎤 Запись началась');
     } catch (error) {
-      console.error('Failed to start listening:', error);
+      console.error('❌ Ошибка начала записи:', error);
       setIsListening(false);
-      Alert.alert('Ошибка', 'Не удалось запустить распознавание речи.');
+      setIsModalVisible(false);
+      setError(error.message);
+      Alert.alert(t('voiceAssistant.error'), error.message || 'Unknown error');
     }
   };
 
-  const stopListening = async () => {
+  const stopListeningAndProcess = async () => {
+    if (!isListening || !recordingRef.current) return;
+  
     try {
+      console.log('🛑 Остановка записи...');
       setIsListening(false);
       setIsProcessing(true);
-      setResponseText('Распознавание речи...');
-      
-      const recognizedText = await AIService.stopListening();
-      
-      if (recognizedText) {
-        setTranscribedText(recognizedText);
-        await processQuery(recognizedText);
+      setResponseText(t('voiceAssistant.processing'));
+  
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      recordingRef.current = null;
+  
+      if (uri) {
+        console.log('📤 Отправка аудио на бэкенд...');
+        const text = await ApiService.transcribeAudio(uri);
+        
+        if (text) {
+          setTranscribedText(text);
+          await processQuery(text);
+        } else {
+          setResponseText(t('voiceAssistant.noSpeech'));
+          setIsProcessing(false);
+        }
       } else {
-         setResponseText('Не удалось распознать речь. Попробуйте еще раз.');
-         setIsProcessing(false);
+        setResponseText(t('voiceAssistant.recordError'));
+        setIsProcessing(false);
       }
     } catch (error) {
-      console.error('Failed to stop listening:', error);
-      setResponseText('Произошла ошибка при распознавании.');
+      console.error('❌ Ошибка обработки записи:', error);
+      setResponseText(t('voiceAssistant.error'));
+      setError(error.message);
       setIsProcessing(false);
     }
   };
@@ -112,87 +205,112 @@ export const VoiceAssistant = ({
     }
 
     try {
-      setResponseText('Думаю...');
-      const result = await AIService.processVoiceQuery(text, currentLocation);
+      setIsProcessing(true);
+      setResponseText(t('voiceAssistant.thinking'));
+      
+      const attractionNames = attractions.map(a => t(a.name));
+      const interestNames = interests.map(i => t(i.name));
+
+      const result = await ApiService.processQuery(text, {
+        region: selectedRegionId,
+        availableAttractions: attractionNames,
+        categories: interestNames.join(', ')
+      });
+
+      console.log('🤖 Результат от бэкенда:', result);
 
       switch (result.function) {
         case 'build_route':
-          const destinationName = result.destination;
-          const destinationAttraction = attractionsData.find(
-            (attr) => attr.name.toLowerCase() === destinationName.toLowerCase()
-          );
+          const destinationName = result.destination.toLowerCase();
+          
+          // Ищем достопримечательность с учетом перевода
+          const destinationAttraction = attractions.find((attr) => {
+            const translatedName = t(attr.name).toLowerCase();
+            return translatedName.includes(destinationName) || destinationName.includes(translatedName);
+          });
 
           if (destinationAttraction) {
-            setResponseText(`Строю маршрут к "${destinationName}"...`);
-            const routeData = await getRouteToAttraction(
-              currentLocation,
-              destinationAttraction
-            );
-            if (routeData && routeData.success) {
-              onRouteGenerated(routeData);
-              closeModal();
-            } else {
-              throw new Error('Не удалось построить маршрут.');
-            }
+            setResponseText(t('voiceAssistant.buildingRoute', { name: t(destinationAttraction.name) }));
+            navigation.navigate('Map', { 
+              aiRoute: { destination: destinationAttraction },
+            });
+            setTimeout(closeModal, 800);
           } else {
-            setResponseText(`К сожалению, я не смог найти "${destinationName}". Попробуйте другое место.`);
+            setResponseText(t('voiceAssistant.attractionNotFound', { name: result.destination }) + '\n\n' + attractionNames.slice(0, 5).join('\n'));
           }
           break;
 
         case 'find_attractions':
-          const category = result.category;
-          const interest = INTERESTS.find(
-            (i) => t(i.name).toLowerCase() === category.toLowerCase()
-          );
+          const categoryInput = result.category.toLowerCase();
+          
+          // Ищем категорию
+          const interest = interests.find((i) => {
+            const categoryName = t(i.name).toLowerCase();
+            return categoryName.includes(categoryInput) || categoryInput.includes(categoryName);
+          });
 
           if (interest) {
-            const matchingAttractions = ATTRACTIONS.filter((a) =>
+            const matchingAttractions = attractions.filter((a) =>
               a.categories.includes(interest.id)
             );
 
             if (matchingAttractions.length > 0) {
-              setResponseText(`Нашел ${matchingAttractions.length} мест в категории "${category}". Показываю на карте.`);
+              setResponseText(t('voiceAssistant.foundAttractions', { count: matchingAttractions.length, category: t(interest.name) }));
               const attractionIds = matchingAttractions.map((a) => a.id);
               navigation.navigate('Map', { selectedAttractions: attractionIds });
-              closeModal();
+              setTimeout(closeModal, 800);
             } else {
-              // Если не найдено в локальной базе, ищем через Google Places
-              setResponseText(`В локальной базе ничего не найдено. Ищу через Google Places...`);
-              try {
-                const googlePlaces = await PlacesService.searchByCategory(
-                  currentLocation || { latitude: 52.3000, longitude: 76.9500 },
-                  interest.id,
-                  15000
-                );
-
-                if (googlePlaces && googlePlaces.length > 0) {
-                  setResponseText(`Найдено ${googlePlaces.length} мест в категории "${category}" через Google Places. Показываю на карте.`);
-                  setTimeout(() => {
-                    navigation.navigate('Map', { 
-                      googlePlaces: googlePlaces,
-                      searchQuery: category 
-                    });
-                    closeModal();
-                  }, 1500);
-                } else {
-                  setResponseText(`В категории "${category}" ничего не найдено даже через Google Places.`);
-                }
-              } catch (error) {
-                console.error('Google Places search error:', error);
-                setResponseText(`В категории "${category}" ничего не найдено.`);
-              }
+              setResponseText(t('voiceAssistant.noAttractionsInCategory', { category: t(interest.name) }));
             }
           } else {
-            setResponseText(`Категория "${category}" не найдена.`);
+            // Пробуем найти по ключевым словам в достопримечательностях
+            const keywordMatches = attractions.filter(a => {
+              const name = t(a.name).toLowerCase();
+              const desc = t(a.description).toLowerCase();
+              return name.includes(categoryInput) || desc.includes(categoryInput);
+            });
+            
+            if (keywordMatches.length > 0) {
+              setResponseText(`🔍 Найдено ${keywordMatches.length} мест по запросу "${result.category}"`);
+              const attractionIds = keywordMatches.map((a) => a.id);
+              navigation.navigate('Map', { selectedAttractions: attractionIds });
+              setTimeout(closeModal, 800);
+            } else {
+              setResponseText(`❌ Ничего не найдено. Доступные категории:\n${interests.map(i => t(i.name)).join(', ')}`);
+            }
+          }
+          break;
+
+        case 'show_info':
+          // Показываем информацию о достопримечательности
+          const infoName = result.name.toLowerCase();
+          const infoAttraction = attractions.find((attr) => {
+            const translatedName = t(attr.name).toLowerCase();
+            return translatedName.includes(infoName) || infoName.includes(translatedName);
+          });
+
+          if (infoAttraction) {
+            setResponseText(`ℹ️ ${t(infoAttraction.name)}\n\n${t(infoAttraction.description)}`);
+            // Можно перейти на страницу детальной информации
+            setTimeout(() => {
+              navigation.navigate('AttractionDetail', { 
+                attraction: infoAttraction,
+                translatedName: t(infoAttraction.name),
+                translatedDescription: t(infoAttraction.description)
+              });
+              closeModal();
+            }, 1500);
+          } else {
+            setResponseText(`❌ Не найдено информации о "${result.name}"`);
           }
           break;
 
         default:
-          setResponseText(result.responseText || "Не совсем понял, повторите, пожалуйста.");
+          setResponseText(result.responseText || t('voiceAssistant.notUnderstood'));
       }
     } catch (error) {
       console.error('AI processing error:', error);
-      setResponseText('Произошла ошибка при обработке вашего запроса.');
+      setResponseText(t('voiceAssistant.error'));
     } finally {
       setIsProcessing(false);
     }
@@ -203,8 +321,13 @@ export const VoiceAssistant = ({
     setTranscribedText('');
     setResponseText('');
     setSelectedImage(null);
-    if (isListening) {
-      AIService.stopListening().catch(e => console.error("Error stopping on close", e));
+    setError(null);
+    
+    if (recordingRef.current) {
+      recordingRef.current.stopAndUnloadAsync().catch(e => {
+        console.error('Ошибка остановки записи при закрытии:', e);
+      });
+      recordingRef.current = null;
     }
   };
 
@@ -229,7 +352,7 @@ export const VoiceAssistant = ({
         await analyzeImage(result.assets[0].base64);
       }
     } catch (error) {
-      console.error('Camera error:', error);
+      // console.error('Camera error:', error);
       Alert.alert('Ошибка', 'Не удалось открыть камеру');
     }
   };
@@ -255,58 +378,49 @@ export const VoiceAssistant = ({
         await analyzeImage(result.assets[0].base64);
       }
     } catch (error) {
-      console.error('Gallery error:', error);
+      // console.error('Gallery error:', error);
       Alert.alert('Ошибка', 'Не удалось открыть галерею');
     }
   };
 
   const analyzeImage = async (base64Image) => {
     setIsAnalyzingImage(true);
-    setTranscribedText('Анализирую изображение...');
+    setTranscribedText(t('voiceAssistant.analyzing'));
 
     try {
       const visionResult = await VisionService.analyzeLandmark(base64Image);
 
       if (visionResult.success && visionResult.landmark) {
-        const landmarkName = visionResult.landmark.name;
-        setTranscribedText(`Распознано: ${landmarkName}`);
+        const landmarkName = visionResult.landmark.name.toLowerCase();
+        setTranscribedText(`✅ ${t('voiceAssistant.recognized')}: ${visionResult.landmark.name}`);
 
-        // Ищем в нашей базе
-        const foundAttraction = ATTRACTIONS.find(a => 
-          a.name.toLowerCase().includes(landmarkName.toLowerCase()) ||
-          landmarkName.toLowerCase().includes(a.name.toLowerCase())
-        );
+        const foundAttraction = attractions.find(a => {
+          const translatedName = t(a.name).toLowerCase();
+          const translatedDesc = t(a.description).toLowerCase();
+          return translatedName.includes(landmarkName) || 
+                 landmarkName.includes(translatedName) ||
+                 translatedDesc.includes(landmarkName);
+        });
 
         if (foundAttraction) {
-          setResponseText(`Нашел достопримечательность: ${foundAttraction.name}. Открываю детали...`);
+          setResponseText(`🎯 ${t('voiceAssistant.foundAttraction')}: ${t(foundAttraction.name)}`);
           setTimeout(() => {
-            navigation.navigate('AttractionDetail', { attraction: foundAttraction });
+            navigation.navigate('Map', { 
+              routeFromUserTo: foundAttraction
+            });
             closeModal();
           }, 1500);
         } else {
-          // Ищем через PlacesService
-          setResponseText(`Ищу информацию о "${landmarkName}" через Google Places...`);
-          const places = await PlacesService.searchPlaces(landmarkName, currentLocation, 50000);
-          
-          if (places && places.length > 0) {
-            setResponseText(`Найдено ${places.length} похожих мест. Показываю на карте...`);
-            setTimeout(() => {
-              navigation.navigate('Map', { 
-                googlePlaces: places,
-                searchQuery: landmarkName 
-              });
-              closeModal();
-            }, 1500);
-          } else {
-            setResponseText(`Найдена достопримечательность "${landmarkName}", но подробной информации в базе нет.`);
-          }
+          // TODO: Implement places search via backend API
+          setResponseText(t('voiceAssistant.placeNotFound', { name: visionResult.landmark.name }));
+          console.warn('⚠️ Vision API landmark search not implemented via backend yet');
         }
       } else {
-        setResponseText('Не удалось распознать достопримечательность на фото. Попробуйте другое изображение.');
+        setResponseText(t('voiceAssistant.imageRecognitionFailed'));
       }
     } catch (error) {
       console.error('Vision analysis error:', error);
-      setResponseText('Ошибка при анализе изображения');
+      setResponseText(t('voiceAssistant.error'));
     } finally {
       setIsAnalyzingImage(false);
     }
@@ -368,7 +482,7 @@ export const VoiceAssistant = ({
                   <Ionicons name="sparkles" size={16} color="white" />
                 </View>
                 <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                  AI Помощник
+                  {t('voiceAssistant.title')}
                 </Text>
               </View>
               <TouchableOpacity 
@@ -382,6 +496,16 @@ export const VoiceAssistant = ({
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               
               <View style={styles.statusSection}>
+                {isListening && (
+                  <Animated.View style={[
+                    styles.volumeIndicator,
+                    { 
+                      backgroundColor: theme.colors.primary,
+                      transform: [{ scaleX: animatedVolume }]
+                    }
+                  ]} />
+                )}
+
                 <Animated.View style={[
                   styles.micContainer,
                   { 
@@ -402,7 +526,7 @@ export const VoiceAssistant = ({
                 </Text>
                 
                 <Text style={[styles.hintText, { color: theme.colors.textSecondary }]}>
-                  Попробуйте: "Найди маршрут к мечети" или "Покажи музеи"
+                  {t('voiceAssistant.hint')}
                 </Text>
                 
                 {!isListening && !isProcessing && !isAnalyzingImage && (
@@ -412,14 +536,14 @@ export const VoiceAssistant = ({
                       onPress={handleCameraPress}
                     >
                       <Ionicons name="camera" size={24} color={theme.colors.primary} />
-                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>Камера</Text>
+                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>{t('voiceAssistant.camera')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                       style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
                       onPress={handleGalleryPress}
                     >
                       <Ionicons name="images" size={24} color={theme.colors.primary} />
-                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>Галерея</Text>
+                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>{t('voiceAssistant.gallery')}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -460,7 +584,7 @@ export const VoiceAssistant = ({
                 <View style={styles.actionButtonSection}>
                   <TouchableOpacity
                     style={[styles.stopButton, { backgroundColor: '#EF4444' }]}
-                    onPress={stopListening}
+                    onPress={stopListeningAndProcess}
                   >
                     <Ionicons name="stop" size={24} color="white" />
                     <Text style={styles.stopButtonText}>{t('voiceAssistant.stopRecording')}</Text>
@@ -641,5 +765,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 8,
     resizeMode: 'cover',
+  },
+  volumeIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    height: 4,
+    width: '100%',
+    borderRadius: 2,
+    opacity: 0.7,
   },
 }); 

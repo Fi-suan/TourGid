@@ -1,0 +1,21 @@
+{
+  "common": {
+    "reviewsTitle": "Reviews",
+    "details": "Details",
+    "loading": "Loading...",
+    "retry": "Retry"
+  },
+  "errors": {
+    "initializationFailed": "Failed to load initial data. Check your network connection.",
+    "fetchDataFailed": "Failed to fetch data for the region.",
+    "errorTitle": "An Error Occurred"
+  },
+  "voiceAssistant": {
+    "title": "AI Assistant",
+    "hint": "Try: \"Find route to mosque\" or \"Show museums\"",
+    "voiceAssistant": {
+      "title": "AI Assistant",
+      "hint": "Try: \"Find route to mosque\" or \"Show museums\""
+    }
+  }
+}

@@ -3,17 +3,68 @@
     "search": "Search attractions...",
     "menu": "Menu",
     "noResults": "No attractions found",
-    "readMore": "Read more",
-    "showOnMap": "Show on map"
+    "readMore": "Read More",
+    "showOnMap": "Show on Map",
+    "loadingMap": "Loading map...",
+    "searchPlaceholder": "Search attractions...",
+    "readyRoutes": "Ready Routes",
+    "bestRoutes": "Best routes in the region",
+    "determiningLocation": "🗺️ Determining your location...",
+    "noAttractionsFound": "No attractions found",
+    "showAllInRegion": "Show all places in {{regionName}}",
+    "photos": "Photos",
+    "reviewsTitle": "Reviews",
+    "details": "Details",
+    "loading": "Loading..."
+  },
+  "voiceAssistant": {
+    "title": "AI Assistant",
+    "hint": "Try: \"Find route to mosque\" or \"Show museums\"",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "listening": "Listening...",
+    "processing": "Thinking...",
+    "analyzing": "Analyzing image...",
+    "notUnderstood": "Didn't quite understand. Try:\n• Build route to [place]\n• Show museums\n• Tell about [attraction]",
+    "buildingRoute": "Building route to \"{{name}}\"...",
+    "foundAttractions": "Found {{count}} places in category \"{{category}}\". Showing on map...",
+    "noAttractionsInCategory": "Nothing found in category \"{{category}}\" for the selected region.",
+    "attractionNotFound": "Could not find \"{{name}}\". Try:",
+    "categoryNotFound": "Category \"{{category}}\" not found.",
+    "error": "An error occurred. Please try again.",
+    "noSpeech": "Could not recognize speech. Please try again.",
+    "recordError": "Failed to record audio. Please check permissions.",
+    "recognized": "Recognized",
+    "foundAttraction": "Found attraction",
+    "searchingNearby": "Searching for information",
+    "placeNotFound": "Place \"{{name}}\" not found",
+    "imageRecognitionFailed": "Could not recognize landmark in photo"
   },
   "menuItems": {
     "historicalFacts": "Historical Facts",
     "regionInfo": "Region Info",
-    "settings": "Settings"
+    "settings": "Settings",
+    "routes": "Routes"
+  },
+  "attractionDetail": {
+    "descriptionTitle": "Description",
+    "historicalInfo": "Historical Information",
+    "workingHours": "Working Hours",
+    "weekdays": "Weekdays",
+    "weekend": "Weekend",
+    "tips": "Useful Tips",
+    "contacts": "Contacts",
+    "buildRoute": "Build Route",
+    "showOnMap": "Show on Map"
   },
   "screens": {
     "home": {
-      "title": "TourGid"
+      "title": "TourGid Kazakhstan",
+      "selectRegion": "Regions",
+      "interests": "What interests you?",
+      "routes": "Ready Routes",
+      "popularRoutes": "Popular Routes",
+      "attractionsTitle": "Popular Attractions"
     },
     "attractionDetail": {
       "title": "Details",
@@ -22,22 +73,50 @@
       "contacts": "Contacts",
       "weekdays": "Weekdays",
       "weekend": "Weekend",
-      "dayOff": "Day Off"
+      "dayOff": "Day Off",
+      "buildRoute": "Build Route",
+      "descriptionTitle": "Description"
     },
     "historicalFacts": {
-      "title": "Historical Facts"
+      "title": "History"
     },
     "settings": {
       "title": "Settings",
       "languageSection": "Language",
       "themeSection": "Theme",
-      "darkMode": "Dark Mode"
+      "darkMode": "Dark Mode",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System"
+    },
+    "routeDetail": {
+      "notFound": "Route not found.",
+      "mapTitle": "Route Map",
+      "attractionsTitle": "Attractions",
+      "tipsTitle": "Useful Tips",
+      "startButton": "Start Route"
     },
     "regionInfo": {
-      "title": "About Region"
+      "title": "About Region",
+      "geographyTitle": "Geography",
+      "historyTitle": "History",
+      "cultureTitle": "Culture",
+      "natureTitle": "Nature"
     },
     "map": {
       "title": "Map"
+    },
+    "routes": {
+      "title": "Routes",
+      "popularRoutes": "Popular Routes"
+    },
+    "settings": {
+      "title": "Settings",
+      "languageSection": "Language",
+      "themeSection": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System"
     }
   },
   "interests": {
@@ -48,85 +127,269 @@
     "architecture": "Architecture"
   },
   "attractions": {
-    "abdullinMuseum": {
-      "name": "Abdullin Brothers Art Museum",
-      "description": "Largest art collection in Eastern Kazakhstan"
+    "mashkhurZhusupMosque": {
+      "name": "Mashkhur Zhusup Mosque",
+      "description": "The largest and most beautiful mosque in Pavlodar with four 63-meter minarets. The turquoise dome is visible from anywhere in the city. Inside, an atmosphere of peace reigns, and the decoration details amaze with grace and craftsmanship.",
+      "historicalInfo": "The mosque opened in 2001 and is named after the outstanding Kazakh poet and thinker Mashkhur Zhusup Kopeev. The number 63 - the height of the minarets - is not accidental: that's how many years the Prophet Muhammad lived. The building is shaped like an eight-pointed star and can accommodate 1,500 worshippers at once.",
+      "tip1": "Climb to the observation deck of one of the minarets — the view of the Irtysh and the whole city is breathtaking!",
+      "tip2": "Dress code is mandatory: covered shoulders and knees, women must wear a headscarf. Scarves are provided at the entrance.",
+      "tip3": "Visit the Museum of Islamic Culture on the first floor. Admission is free, the collection is small but interesting."
+    },
+    "blagoveshchenskyCathedral": {
+      "name": "Annunciation Cathedral",
+      "description": "The main Orthodox church of Pavlodar with golden domes visible from a kilometer away. Built in classic Russian style. The cathedral height is 51 meters. Inside, you'll find an amazing handcrafted porcelain iconostasis.",
+      "historicalInfo": "The cathedral was built in 1999 on the site of a demolished early 20th century church. The architecture recreates the traditions of Russian church architecture. The main pride is the unique porcelain iconostasis made by Ural craftsmen. There are only a few such in the world.",
+      "tip1": "The porcelain iconostasis is a unique work by Ural masters. Look at the details — each icon is a work of art!",
+      "tip2": "The park around the cathedral is quiet and beautiful — a great place for a walk and photos with the domes in the background.",
+      "tip3": "On Sundays at 9:00 AM there's a festive service with a choir. Even if you're not religious, listen — it's very beautiful."
+    },
+    "irtyshEmbankment": {
+      "name": "Irtysh Embankment named after Gabit Musrepov",
+      "description": "The heart of the city and favorite walking spot for locals. Several kilometers along the great Siberian river. Modern fountains, convenient bike paths, cafes with water views.",
+      "historicalInfo": "The embankment was completely reconstructed in the 2000s and named after the famous Kazakh writer Gabit Musrepov. Today it's one of the longest and best-maintained embankments in Kazakhstan, hosting all major city holidays, concerts, and festivals.",
+      "tip1": "Come at sunset — in golden light the river looks incredible! Photographers love it.",
+      "tip2": "In summer there are dancing fountains (evening with lighting), bike and scooter rentals. There are playgrounds.",
+      "tip3": "Walk to the river station — a striking example of 1970s Soviet modernism. Great cafes nearby."
+    },
+    "pavelVasilievHouseMuseum": {
+      "name": "Pavel Vasiliev House-Museum",
+      "description": "Memorial museum in the house where the famous poet spent his childhood and youth. Atmosphere of the early 20th century, personal belongings, manuscripts, photos. A place of pilgrimage for lovers of Russian poetry.",
+      "historicalInfo": "Pavel Vasiliev (1910-1937) was an outstanding Russian poet who tragically died during repressions. Born in Zaisan but spent his childhood and youth in Pavlodar. The museum opened in 1991 in the house where the Vasiliev family lived. The exposition recreates the life of the early century and tells about the poet's life.",
+      "tip1": "Guided tours are held every hour (from 10:00 AM to 5:00 PM). The guides are true enthusiasts and will tell you a lot of interesting things!",
+      "tip2": "There's a small library with a complete collection of the poet's works. You can read on site.",
+      "tip3": "Literary evenings and meetings with contemporary poets are regularly held. Schedule on the museum website."
+    },
+    "regionalMuseumOfLocalLore": {
+      "name": "Regional Museum of Local Lore",
+      "description": "The main museum of Pavlodar region with a rich collection. From Bronze Age archaeological finds to the history of virgin land development. More than 80,000 exhibits on 2,000 sq.m.",
+      "historicalInfo": "Founded in 1942 by scientists evacuated from Moscow. Today it's the largest museum complex in the region. The collections hold more than 80,000 items: archaeological finds, ethnographic collections, documents, photographs, works of art.",
+      "tip1": "Be sure to see the archaeological collection — finds aged 3000-4000 years! Scythian gold is simply mesmerizing.",
+      "tip2": "The 'Virgin Land Development' diorama is a large-scale work showing how the region changed in the 1950s-60s.",
+      "tip3": "On weekends there are workshops for children: pottery, felt-making, national ornaments."
+    },
+    "chekhovTheater": {
+      "name": "Regional Russian Drama Theater named after Chekhov",
+      "description": "The main theater stage of Pavlodar with a 60-year history. The repertoire includes classics and modern productions. Performances in Russian and Kazakh. The troupe regularly tours Kazakhstan and Russia.",
+      "historicalInfo": "The theater was founded in 1964 and is named after the great Russian playwright A.P. Chekhov. The theater building is a monument of Soviet architecture with a characteristic colonnade. Over the years, more than 300 performances have been staged, many have received republican prizes.",
+      "tip1": "Tickets can be bought online at chekhov-theater.kz. Prices from 1000 to 3000 tenge — very affordable!",
+      "tip2": "The theater stages performances in two languages. There are classics (Chekhov, Ostrovsky) and modern plays.",
+      "tip3": "Students and schoolchildren get a 30% discount. Bring your student ID!"
+    },
+    "musicCollege": {
+      "name": "Pavlodar Music College named after Gaug",
+      "description": "The oldest music educational institution in the region. Beautiful building in Soviet style. Regular free concerts by students and teachers — from classics to jazz.",
+      "historicalInfo": "The college was founded in 1967 to train musicians, singers and music teachers. Named after composer Alexander Gaug. The building is built in the style of late Soviet modernism. More than 5,000 specialists have graduated over the years.",
+      "tip1": "Check the poster at the entrance — free concerts every week! Classical music, jazz, folk instruments.",
+      "tip2": "You can sign up for a trial lesson or masterclass. Prices are symbolic, atmosphere is creative.",
+      "tip3": "The building's architecture is a typical example of 1960s Soviet modernism. Interesting for architecture lovers."
+    },
+    "jasybaiResort": {
+      "name": "Jasybai Resort",
+      "description": "Balneological resort 70 km from Pavlodar with healing mineral springs. Sanatorium, mud treatment, clean steppe air. Ideal for treatment and rest for 2-3 days.",
+      "historicalInfo": "The mineral springs of Jasybai have been known since the 19th century. Officially the resort was opened in the 1960s. The local mineral water contains rare trace elements and helps with diseases of the stomach, liver, joints. Lake healing muds also have medicinal properties.",
+      "tip1": "You can stay at the sanatorium for a full course (from 7 days) or come for the weekend. There are rooms of different categories.",
+      "tip2": "Mud and mineral water help with many diseases. Doctor's consultation is free upon check-in.",
+      "tip3": "Better to come by own transport — public transport runs rarely. Or order a transfer at the sanatorium."
+    },
+    "bayanaulNationalPark": {
+      "name": "Bayanaul National Park",
+      "description": "The pearl of Pavlodar region! Mountains, lakes, pine forests in the middle of the steppe. The first national park of Kazakhstan (1985). Dozens of hiking trails, picturesque rocks, cleanest air. Must-see for nature lovers!",
+      "historicalInfo": "Bayanaul was created in 1985 as the first national park of independent Kazakhstan. A unique place: among endless steppes rise mountains up to 1000 meters high, covered with relict pines. Three large lakes, dozens of springs, hundreds of plant and animal species.",
+      "tip1": "Plan a trip for at least 2 days — you can't see everything in one day! You can stay in guesthouses or tents.",
+      "tip2": "Must-see points: Lake Jasybai, Elephant Head rock, Aulie cave. There are signs and trails everywhere.",
+      "tip3": "Best time is from May to September. Summer is hot (+30°C), but in the mountains it's always cooler. Wear comfortable shoes!"
+    },
+    "kyzyltauReserve": {
+      "name": "Kyzyltau State Reserve",
+      "description": "Protected natural area 80 km from the city. Rare bird species, typical Kazakhstan steppe, silence and solitude. Paradise for birdwatchers and wildlife photographers.",
+      "historicalInfo": "The reserve was created to protect rare species of steppe fauna: saiga antelopes, bustards, steppe eagles. Area — more than 150,000 hectares of untouched steppe. In spring and autumn migratory birds stop here — up to 200 species! Visits are strictly regulated.",
+      "tip1": "You need permission to visit — processed through the reserve administration (1-2 days). Call in advance!",
+      "tip2": "Best time for bird watching is spring (April-May) and autumn (September). Bring binoculars!",
+      "tip3": "Own water, food, first aid kit — mandatory! No infrastructure. Preferably go with an experienced guide."
+    },
+    "sabyndykolLake": {
+      "name": "Lake Sabyndykol (Mylovka)",
+      "description": "Salt lake 45 km from Pavlodar. The water is so salty you can't sink! Lake muds have healing properties. Popular vacation spot for locals in summer.",
+      "historicalInfo": "The name translates as 'Soap Lake' — because of the special composition of the water. Mineralization reaches 300 g/l (like the Dead Sea!). Bottom muds contain hydrogen sulfide and are used for medicinal purposes. The lake is shallow — maximum depth 2 meters.",
+      "tip1": "The water is very salty — floating is incredibly easy! But after swimming be sure to rinse with fresh water (bring your own).",
+      "tip2": "Healing muds from the bottom help with skin diseases and joint problems. Apply and wait 15-20 minutes.",
+      "tip3": "Better to go by own car — public transport doesn't run. Bring an umbrella or awning — no shade at all!"
+    },
+    "toktamysMausoleum": {
+      "name": "Toktamys Mausoleum",
+      "description": "Unique monument of Golden Horde architecture from the 14th century in Kyzylzhar village. One of the rarest examples of medieval architecture in Kazakhstan. Place of pilgrimage and historical monument of republican significance.",
+      "historicalInfo": "The mausoleum was built in the 14th century and is associated with the name of Khan Toktamys, ruler of the Golden Horde. This is one of the few surviving monuments of that era in Kazakhstan. Architecture is typical of Muslim mausoleums: dome, portal, rich ornamentation. Restored in the 1990s.",
+      "tip1": "A unique example of medieval architecture — there are few such! Interesting even if you're not a historian.",
+      "tip2": "Tours are conducted by appointment. Call in advance — local enthusiasts will tell you many legends!",
+      "tip3": "The history of Khan Toktamys is like a historical novel. Read before the trip — it will be more interesting."
+    },
+    "myrzashoky": {
+      "name": "Myrzashoky Ancient Settlement",
+      "description": "Ancient settlement from the 10th-14th centuries in Akkuly district. Archaeological monument of the Silk Road era. Remains of fortress walls, building foundations. Place for history and archaeology lovers.",
+      "historicalInfo": "Myrzashoky is the ruins of a medieval city that existed on the Silk Road in the 10th-14th centuries. Archaeologists found ceramics, coins, jewelry, remains of residential and public buildings. The city was destroyed during the Mongol conquests. Today it's an archaeological monument.",
+      "tip1": "Definitely take a guide or tour guide — without explanations it's just ruins. With a story — history comes alive!",
+      "tip2": "Bring water, a hat and sunscreen. In the steppe it's very hot in summer, no shade.",
+      "tip3": "Interesting for lovers of archaeology and Silk Road history. Children might find it boring."
     },
     "jasytarPark": {
       "name": "Zhaster Park",
-      "description": "Central recreation park with attractions and green areas"
+      "description": "Locals' favorite recreation spot! Spacious park with amusement rides, playgrounds, fountains, and cozy alleys. The Ferris wheel offers a stunning view of the city and Irtysh River.",
+      "historicalInfo": "The park was created in the 1970s and has always been the entertainment center of Ust-Kamenogorsk. The name 'Zhaster' means 'youth' in Kazakh. In the 2010s, the park was completely renovated: modern attractions appeared, recreation zones, skate park. Concerts, festivals, and holidays are held here in summer.",
+      "tip1": "Be sure to ride the Ferris wheel — especially beautiful at sunset!",
+      "tip2": "For children: carousels, trampolines, go-karts. Unlimited wristband — 3000 tenge.",
+      "tip3": "The park has cafes and ice cream kiosks. Fountains with lighting operate in summer."
     },
     "svyatoTroitskyMonastery": {
       "name": "Holy Trinity Monastery",
-      "description": "Historic Orthodox monastery from the 19th century"
+      "description": "The oldest active Orthodox monastery in the region since the 19th century. White-stone churches, quiet courtyards, well-maintained grounds. A place of pilgrimage and spiritual peace.",
+      "historicalInfo": "The monastery was founded in 1884 as a women's convent. It was closed during Soviet times but revived in 1993. The architecture combines traditions of Russian church architecture and Siberian style. On the grounds — Trinity Cathedral, bell tower, monastic buildings. A Sunday school and library operate at the monastery.",
+      "tip1": "Visits are free, but observe the dress code: covered shoulders and knees, headscarves for women.",
+      "tip2": "You can buy monastery baked goods, honey, candles. Prices are symbolic, everything goes to the monastery's needs.",
+      "tip3": "Best time to visit — morning (before 11:00 AM), when there are few people and it's especially quiet."
     },
     "bukhtarmaReservoir": {
       "name": "Bukhtarma Reservoir",
-      "description": "One of Kazakhstan's largest reservoirs with scenic views"
+      "description": "A giant man-made sea in the foothills of Altai! One of the largest reservoirs in Kazakhstan and CIS. Length — 460 km, width — up to 30 km. Paradise for fishermen, yachtsmen, and beach lovers.",
+      "historicalInfo": "The reservoir was created in 1960-1967 during the construction of Bukhtarma Hydroelectric Station. It flooded many villages and part of the unique Bukhtarma valley. Today it's not only an energy facility but also a popular recreation spot. The waters are home to pike, zander, carp, bream.",
+      "tip1": "Best beaches — near Samarka village and 'Avrora' base. Water warms up to +22-24°C in summer.",
+      "tip2": "Excellent fishing year-round. Winter — ice fishing. Fishing license available at local shops.",
+      "tip3": "Travel by own transport (40 km from UKG). Can rent a lakeside house — from 5000 tenge/night."
     },
     "irtyshEmbankmentUsk": {
       "name": "Irtysh Embankment",
-      "description": "Well-maintained waterfront promenade for walks and recreation"
+      "description": "Favorite walking spot with a view of the great Siberian river! Modern waterfront with bike paths, benches, playgrounds. Summer — fountains, winter — holiday lights.",
+      "historicalInfo": "The modern embankment appeared in the 2010s after major reconstruction. Before, there were industrial facilities and makeshift beaches. Today it's one of residents' favorite places: the embankment stretches over 3 km, with piers, observation decks, cafes.",
+      "tip1": "Best time for walks — evening, when lights turn on and beautiful views of the opposite bank open up.",
+      "tip2": "Bicycle and scooter rentals operate in summer. There's a rollerdrome and skate zone.",
+      "tip3": "In winter the embankment turns into an ice rink! Skates available for rent. Free admission."
     },
     "abayParkShymkent": {
       "name": "Abay Central Park",
-      "description": "Shymkent's largest park with zoo and botanical garden"
+      "description": "The green heart of Shymkent! The largest city park spanning 42 hectares. Zoo, botanical garden, amusement rides, fountains, and cozy alleys. Perfect place for family recreation.",
+      "historicalInfo": "The park was founded in the mid-20th century and named after the great Kazakh poet Abay Kunanbayev. Fully reconstructed in the 2000s. Today it's the main recreation spot for residents: all city holidays, concerts, and festivals are held here. The zoo opened in the 1980s and houses over 200 species of animals.",
+      "tip1": "Be sure to visit the zoo — tickets only 500 tenge, you can see lions, bears, and peacocks.",
+      "tip2": "The park has bicycle and e-scooter rentals. Rental from 1000 tenge/hour.",
+      "tip3": "Dancing fountains with music and lighting turn on in the evening. Show starts at 8:00 PM (May-September)."
     },
     "karavanSaraiMuseum": {
       "name": "Karavan-Saray Museum",
-      "description": "Historic complex dedicated to the Great Silk Road"
+      "description": "A unique architectural complex recreating the atmosphere of the Great Silk Road. Bazaars, artisan workshops, historical exhibitions. A time machine to the 12th century!",
+      "historicalInfo": "The museum opened in 2007 on the site of a historical caravanserai — an inn for traders. Shymkent (then Chimkent) was a crucial point on the Silk Road connecting China and Europe. The museum's architecture recreates the style of medieval inns. The exposition tells about goods transported through the city: silk, spices, weapons, ceramics.",
+      "tip1": "On weekends there's a craft bazaar — you can buy ceramics, carpets, handmade jewelry.",
+      "tip2": "Guided tours in Russian, Kazakh, and English. Cost — 1500 tenge. Very educational!",
+      "tip3": "Near the museum is Shymkent's old town. Walk through narrow streets, feel the oriental bazaar atmosphere."
     },
     "nurAstanaMosqueShymkent": {
       "name": "Nur-Astana Mosque",
-      "description": "Modern mosque - spiritual center of Southern Kazakhstan"
+      "description": "A majestic modern mosque with snow-white domes and graceful minarets. One of the largest in Southern Kazakhstan. Accommodates up to 5,000 worshippers. Beautiful architecture, peaceful atmosphere.",
+      "historicalInfo": "The mosque was built in 2008 and named after Kazakhstan's capital. The architecture combines traditions of Islamic architecture and modern technology. The main minaret is 55 meters high. Inside — rich marble decoration, gilding, beautiful calligraphy. Not only religious services but also cultural and educational events are held here.",
+      "tip1": "Dress code is mandatory: covered shoulders and knees. Women need a headscarf. Provided at the entrance.",
+      "tip2": "Best time for photos — early morning (sunrise) or evening (sunset), when the lighting turns on.",
+      "tip3": "Inside there's a library of Islamic literature. You can take books to read in the reading room."
     },
     "karatauMountain": {
       "name": "Karatau Ridge",
-      "description": "Mountain range with scenic views and trekking routes"
+      "description": "Picturesque mountain range 20 km from Shymkent. 'Black Mountains' (Kaz.) — a true paradise for trekking lovers! Dozens of routes, panoramic views, pristine air, rare plants.",
+      "historicalInfo": "Karatau is a mountain range 420 km long, part of the Tian Shan mountain system. The name translates as 'Black Mountains' due to the dark color of rocks. Highest point — 2,176 meters. Ancient rock paintings (petroglyphs) over 2,000 years old have been found here. The mountains have many springs with mineral water. Phosphate deposits have been mined here since Soviet times.",
+      "tip1": "Routes of varying difficulty — from easy walks (2-3 hours) to serious climbs (full day).",
+      "tip2": "Must bring water, food, trekking poles, and sunscreen. It's hot in the mountains in summer!",
+      "tip3": "Better to go with a guide or group — there's risk of getting lost. Tour company contacts can be found in Shymkent."
     },
     "kentauCanyons": {
       "name": "Kentau Canyons",
-      "description": "Picturesque canyons with red rocks"
+      "description": "Fantastic canyons with red rocks 40 km from Shymkent! Reminiscent of the Grand Canyon in miniature. Incredible views for photoshoots, routes for jeep tours and trekking.",
+      "historicalInfo": "The canyons formed millions of years ago through erosion. The red color of rocks is due to high iron content. The area is practically uninhabited, giving a sense of a lost world. Fossils of ancient sea creatures have been found in the canyons — once there was a sea here. The canyons gained popularity among tourists in the 2010s thanks to social media.",
+      "tip1": "Accessible only by SUV or with a jeep tour. A regular car won't make it!",
+      "tip2": "Bring a wide-angle lens for photos — the scale of canyons is impressive. Best light — morning and evening.",
+      "tip3": "Summer is very hot (+40°C), no shade. Better to go in spring (April-May) or autumn (September-October)."
     },
     "baiterek": {
-      "name": "Baiterek",
-      "description": "Main symbol of the capital with panoramic city views"
+      "name": "Baiterek Monument",
+      "description": "The calling card of Astana! A 105-meter tower with a golden sphere on top. The observation deck at 97 meters height (symbolizing the year the capital was moved) offers a stunning city panorama.",
+      "historicalInfo": "Baiterek was built in 2002 based on President Nursultan Nazarbayev's idea, designed by architect Shota Valikhanov. The name comes from the mythological Tree of Life in Kazakh legends. The height of 97 meters symbolizes 1997 — the year the capital was relocated. Inside the golden sphere is an imprint of Nazarbayev's right hand: it's believed that if you place your hand and make a wish, it will come true.",
+      "tip1": "Best time to visit — an hour before sunset. Evening Astana with lights is simply magical!",
+      "tip2": "Ticket — 1000 tenge (students — 500). Elevator operates 10:00 AM to 9:00 PM. Queues on weekends.",
+      "tip3": "Be sure to place your hand on Nazarbayev's handprint — it's a tradition! Make a wish."
     },
     "hazretSultanMosque": {
       "name": "Hazret Sultan Mosque",
-      "description": "One of the largest mosques in Central Asia"
+      "description": "The largest mosque in Central Asia! Truly gigantic: accommodates 10,000 worshippers. Snow-white walls, 8 minarets, 51-meter golden dome. Architecture inspired by the Taj Mahal.",
+      "historicalInfo": "The mosque opened in 2012, for the 20th anniversary of Kazakhstan's independence. Named after Sufi poet and religious figure Khoja Ahmed Yasawi. Built in classical Islamic style with elements of Kazakh ornament. Area — 11 hectares! Inside — Italian marble, handmade Iranian carpets, Czech crystal chandeliers. One of the most beautiful mosques in the world.",
+      "tip1": "Dress code is mandatory: modest clothing, women need headscarves. Scarves provided free at the entrance.",
+      "tip2": "Better to come outside of prayer times (5 times daily). Outside prayer times — free to explore.",
+      "tip3": "Free admission. Inside there's a library of Islamic literature. Atmosphere of peace and grandeur."
     },
     "palaceOfPeace": {
       "name": "Palace of Peace and Reconciliation",
-      "description": "Unique pyramid designed by Norman Foster"
+      "description": "Astana's most unusual attraction! A 62-meter glass pyramid (same height as Cheops pyramid). Project by star architect Norman Foster. Symbol of unity of religions and cultures.",
+      "historicalInfo": "The pyramid was built in 2006 specifically for the Congress of Leaders of World and Traditional Religions. Architect — British Norman Foster, creator of London's Gherkin skyscraper. Height 62 meters, base — 62×62 meters. Inside — 1,500-seat concert hall with world-class acoustics, culture museum, exhibition spaces. Top level — hall for interfaith meetings.",
+      "tip1": "Tours conducted hourly from 10:00 AM to 6:00 PM. Ticket — 1500 tenge. English tours by request.",
+      "tip2": "World-class concerts — check the schedule! Prices from 3000 tenge. Acoustics are amazing.",
+      "tip3": "Climb to the pyramid's top — there are Brian Clarke stained glass windows. Play of light is unforgettable!"
     },
     "khanShatyr": {
-      "name": "Khan Shatyr",
-      "description": "World's largest tent - shopping and entertainment center"
+      "name": "Khan Shatyr Entertainment Center",
+      "description": "A giant futuristic tent 150 meters high! World's largest tent structure. Inside — a whole city: shops, cafes, cinema, water park, beach with sand from the Maldives!",
+      "historicalInfo": "Khan Shatyr opened in 2010. Also designed by Norman Foster. The name translates as 'Royal Tent'. Height — 150 meters, area — 140,000 m². Structure held without internal supports! Comfortable temperature maintained inside even in winter (–40°C outside). Unique technology: special ETFE coating lets light through but retains heat.",
+      "tip1": "Top level — indoor Sky Beach Club with Maldives sand, slides, +35°C temperature year-round!",
+      "tip2": "Many shops, from mass market to luxury. Supermarket, food court, IMAX cinema available.",
+      "tip3": "Free entry. Free parking first 2 hours. Open 10:00 AM to 10:00 PM."
     },
     "nationalMuseumKz": {
-      "name": "National Museum of Kazakhstan",
-      "description": "Country's largest museum with richest collection"
+      "name": "National Museum of the Republic of Kazakhstan",
+      "description": "The country's main and largest museum! Giant futuristic building (74,000 m²). From ancient Scythian gold to space program. 5,000 years of Kazakhstan's history.",
+      "historicalInfo": "Museum opened in 2014 on Kazakhstan's Independence Day. One of Central Asia's largest museums. The building occupies an entire block! 11 halls: Ancient History, Nomad Gold, Independence, Astana, Ethnography, Contemporary Art, etc. Over 300,000 exhibits. Highlight — 'Nomad Gold' hall with Scythian treasures.",
+      "tip1": "'Nomad Gold' hall is a must! Scythian jewelry 2,500 years old, 'Golden Man' — symbol of Kazakhstan.",
+      "tip2": "Ticket — 700 tenge (students — 300). Audio guide in Russian/Kazakh/English — 500 tenge.",
+      "tip3": "Allow minimum 3 hours. Museum is huge and interesting. Closed Wednesdays."
     },
     "beketAtaMosque": {
       "name": "Beket-Ata Underground Mosque",
-      "description": "Sacred pilgrimage site in a cave"
+      "description": "A shrine in a cave on Ustyurt Plateau, carved right into the rock! One of the main Muslim pilgrimage sites in Kazakhstan. 4 underground halls, hand-carved in the 18th century. The journey here is an adventure itself!",
+      "historicalInfo": "The mosque was carved into chalk rock in the late 18th century by Sufi teacher and healer Beket-Ata. It's believed he lived here for years in meditation and healed people. After death, he was buried here. The mosque consists of 4 underground halls: entrance, prayer hall, meditation room, and tomb. Pilgrimage here is considered equal to a minor hajj.",
+      "tip1": "Tough road: 80 km from Aktau off-road, then descent into canyon. Mandatory with guide in 4x4!",
+      "tip2": "Strict dress code: modest clothing, women need headscarves. Cool inside (~15°C) — bring a sweater.",
+      "tip3": "Better to go at dawn or sunset. Daytime heat is unbearable. Water with you — minimum 3 liters."
     },
     "boszhiraCanyon": {
       "name": "Boszhira Canyon",
-      "description": "Martian landscapes with white chalk cliffs"
+      "description": "Kazakhstan's most fantastic place! 'Martian' landscapes with snow-white rock formations of bizarre shapes. White ancient seabed, pink sunsets, absolute silence. Kazakhstan's Grand Canyon!",
+      "historicalInfo": "Boszhira is the dried bottom of the ancient Tethys Ocean that existed 50 million years ago. White cliffs are fossilized marine sediments. Wind and rain carved bizarre shapes over millennia: fortresses, mushrooms, towers. Locals call it 'Valley of Castles'. Fossils of ancient sharks and mollusks have been found here.",
+      "tip1": "Only accessible with experienced guide in 4x4. 300 km from Aktau, GPS won't help!",
+      "tip2": "Come for 2-3 days, stay in yurts or tents. Night starry sky here is incredible!",
+      "tip3": "Spring (April-May) and autumn (September-October) are ideal. Summer +45°C, winter –20°C."
     },
     "sherkalaМountain": {
-      "name": "Sherkala Mountain",
-      "description": "Yurt-shaped mountain - 'Lion Mountain'"
+      "name": "Sherkala Mountain ('Lion Mountain')",
+      "description": "Solitary rock formation 300 meters high in the middle of steppe. From one side looks like a sleeping lion, from another — like a yurt. Ancient legend, stunning 360° view, caravanserai on top.",
+      "historicalInfo": "Sherkala (Kaz. 'Lion Mountain') is a remnant of an ancient coral reef. 170 km from Aktau. On top — ruins of a caravanserai where Silk Road traders stopped for the night. Inside the mountain — natural caves and grottos. Legend says a khan once lived here who turned into a lion guarding his treasures.",
+      "tip1": "Ascent to top — 1-1.5 hours. Not difficult, but need sports shoes and gloves (rocks are sharp).",
+      "tip2": "Best time for photos — early morning or sunset. Mountain changes color from white to golden and red.",
+      "tip3": "Bring water, hat. No shade at all. Summer heat is hellish."
     },
     "aktauBeach": {
-      "name": "Aktau Beaches",
-      "description": "Sandy beaches on the Caspian Sea coast"
+      "name": "Aktau Beaches (Caspian Sea)",
+      "description": "Kazakhstan's only sea resort! Sandy Caspian beaches, warm water (+25°C in summer), modern waterfront. Hotels, restaurants, water activities. Vacation like in Dubai but cheaper!",
+      "historicalInfo": "Aktau (formerly Shevchenko) is a port city on the Caspian Sea, founded in 1963. The city was built from scratch in the desert for atomic plant workers. Caspian is the world's largest lake (called sea due to size and salinity). Water here is calm, no jellyfish or sharks, ideal for swimming.",
+      "tip1": "Central beach — most equipped. Loungers, umbrellas, cafes, toilets. Free entry.",
+      "tip2": "Beach season: June-September. Water warms to +25-27°C. Little wind, calm sea.",
+      "tip3": "Waterfront — great place for evening walks. Many restaurants with seafood."
     },
     "mangystauMuseum": {
-      "name": "Mangystau History Museum",
-      "description": "History and culture of Mangystau region"
+      "name": "Mangystau Regional History Museum",
+      "description": "Main regional museum. Learn about Mangystau's unique history: ancient necropolises, underground mosques, nomadic traditions, archaeological finds. Great preparation before regional trip!",
+      "historicalInfo": "Museum opened in 1985. Exhibition covers everything: from paleontology (ancient ocean fossils) to modern times. Highlight — underground mosque hall with models of Beket-Ata, Shakpakty, Karaman. Large ethnography collection: Kazakh yurts, costumes, jewelry, weapons. Separate hall — history of oil and gas development.",
+      "tip1": "Ticket — 500 tenge (students — 250). Tours in Russian and Kazakh — 1000 tenge.",
+      "tip2": "Allow 1.5-2 hours. Museum is small but very informative.",
+      "tip3": "Must visit before trip to Boszhira and Beket-Ata — you'll understand what you're seeing!"
+    },
+    "abdullinMuseum": {
+      "name": "Abdullin Brothers Fine Arts Museum",
+      "description": "The main art museum of East Kazakhstan! Over 3,000 works: Russian painting of the 19th-20th centuries, European art, contemporary Kazakh artists. The building itself is an architectural masterpiece.",
+      "historicalInfo": "The museum opened in 1985 and is named after brothers Nurgali and Abdrashit Abdullin — renowned artist-enlighteners. The building is designed in classicism style with elements of Eastern architecture. The collection includes works by Shishkin, Savrasov, Aivazovsky, as well as a rich collection of Kazakh decorative and applied art.",
+      "tip1": "Don't miss the 19th-century Russian painting hall — works by Kramskoy, Repin, Levitan are here!",
+      "tip2": "Every Saturday at 3:00 PM — free guided tours in Russian and Kazakh. No registration needed.",
+      "tip3": "Students and schoolchildren — 50% discount on admission. Adult ticket — 1000 tenge."
     }
   },
   "routes": {
@@ -169,9 +432,8 @@
   },
   "historicalFacts": {
     "pavlodarFoundation": {
-      "title": "Foundation of Koryakovsky Outpost",
-      "description": "In 1720, Koryakovsky Outpost was founded on the banks of the Irtysh, marking the beginning of Pavlodar's history.",
-      "fullDescription": "In 1720, the Koryakovsky Outpost was founded on the banks of the Irtysh River, with its main task being to guard the salt mines at Lake Koryakovsky. This date is considered the beginning of the history of Pavlodar city. The outpost was built by decree of Peter I as part of strengthening the eastern borders of the Russian Empire. Over time, the outpost turned into a Cossack village, and then into a major trading center on the route from Russia to Central Asia."
+      "title": "Foundation of Koryakovsky outpost",
+      "description": "In 1720, the Koryakovsky outpost was founded on the banks of the Irtysh River, which marked the beginning of the history of Pavlodar."
     },
     "cityStatus": {
       "title": "Granting City Status",
@@ -215,8 +477,64 @@
     },
     "aktauRename": {
       "title": "Renaming to Aktau",
-      "description": "In 1991, the city of Shevchenko was renamed Aktau.",
-      "fullDescription": "In 1991, after Kazakhstan gained independence, the city of Shevchenko was renamed Aktau (Ақтау), which translates from Kazakh as 'white mountain', after the chalk mountains on the Mangyshlak Peninsula. The renaming symbolized a return to Kazakh roots and traditions. After the reactor was shut down in 1999, the city refocused on the oil and gas industry, becoming the largest port on Kazakhstan's Caspian coast. Today Aktau is the administrative center of Mangystau Region, an important transport and logistics hub, center of oil production and tourism with unique natural landscapes."
+      "description": "In 1991, the city of Shevchenko was renamed to Aktau."
     }
+  },
+  "regionInfo": {
+    "population": "Population",
+    "climate": "Climate",
+    "founded": "Founded"
+  },
+  "regions": {
+    "pavlodar": {
+      "name": "Pavlodar Region",
+      "description": "Pavlodar Region, located in the north-east of Kazakhstan, is known for its industrial giants and rich natural resources. This is a region with a rich history associated with the development of virgin lands and industry.",
+      "climate": "Sharply continental",
+      "geography": "The territory is predominantly flat, part of the West Siberian Plain. The main river is the Irtysh. In the south - salt lakes.",
+      "history": "Founded as the Koryakovsky outpost in 1720. Became a city in 1861. Center for the development of virgin lands in the 1950s and a major industrial hub in the 1960s-80s.",
+      "culture": "Rich cultural heritage, combining Kazakh traditions and the influence of Russian culture. Homeland of many outstanding figures of literature and art.",
+      "nature": "Unique nature: from steppes to the mountain ranges of Bayanaul, salt lakes (Maraldy), the first national park of Kazakhstan."
+    },
+    "ustKamenogorsk": {
+      "name": "East Kazakhstan Region",
+      "description": "East Kazakhstan region is a pearl of Kazakhstan, a land of mountains, rivers and lakes. Ust-Kamenogorsk, its administrative center, is a major industrial and cultural center of the country.",
+      "climate": "Sharply continental",
+      "geography": "The region is located at the foot of the Altai Mountains. The largest rivers are the Irtysh and Ulba. Many lakes, including the Bukhtarma reservoir.",
+      "history": "Founded as the Ust-Kamenogorsk fortress in 1720. It became the center of the mining and non-ferrous metallurgy industry. An important stronghold on the southern borders of Russia.",
+      "culture": "A region with a rich historical heritage, a mixture of cultures of different peoples. Folk crafts, literature and art are developed.",
+      "nature": "Unique nature of Altai. Mountains, forests, rivers and lakes. Popular places for tourism, fishing and hunting."
+    },
+    "shymkent": {
+      "name": "Shymkent",
+      "description": "Shymkent, one of the oldest cities in Kazakhstan, is a city of republican significance. It is a major cultural and commercial center in the south of the country with a rich historical heritage.",
+      "climate": "Temperate continental",
+      "geography": "Located in the foothills of the Tien Shan. Mild climate, fertile land. The Badam River flows through the city.",
+      "history": "It originated in the 12th century as a fortress on the Great Silk Road. An important trade and craft center. In 2018, it received the status of a city of republican significance.",
+      "culture": "The southern capital of Kazakhstan with rich traditions of hospitality. Diverse cuisine, many historical monuments and mosques.",
+      "nature": "Picturesque foothills, canyons and mountain ranges in the vicinity. A popular place for eco-tourism and outdoor activities."
+    },
+    "astana": {
+      "name": "Astana",
+      "description": "Astana has been the capital of Kazakhstan since 1997, a modern and rapidly growing city with futuristic architecture. It is the political, economic and cultural heart of the nation.",
+      "climate": "Sharply continental",
+      "geography": "Located in the steppe zone in the north of the country, on the banks of the Ishim River. Flat terrain.",
+      "history": "Founded in 1830 as the Akmola Prikaz. In Soviet times - Tselinograd, the center for the development of virgin lands. Since 1997 - the capital of Kazakhstan.",
+      "culture": "A modern metropolis designed by the world's leading architects. Many museums, theaters, concert halls. Center for international exhibitions and forums.",
+      "nature": "Surrounded by steppes. Within the city there are landscaped parks and the embankment of the Ishim River."
+    },
+    "aktau": {
+      "name": "Mangystau Region",
+      "description": "Mangystau region, located on the coast of the Caspian Sea, is famous for its unique desert landscapes and rock formations. Aktau is the main seaport of Kazakhstan.",
+      "climate": "Sharply continental, desert",
+      "geography": "Mangyshlak Peninsula. Unique landscapes: Ustyurt plateau, Karagiye depression (-132 m), canyons, deserts and the coast of the Caspian Sea.",
+      "history": "Founded in 1963 as the city of Shevchenko, a base for the nuclear industry. Since 1991 - Aktau, the center of the oil and gas industry.",
+      "culture": "An ancient land with unique monuments - underground mosques (Beket-Ata), necropolises. A place of pilgrimage and tourism.",
+      "nature": "Unique natural sites: Sherkala mountain, Boszhira canyon, Torysh valley of balls. Fantastic, 'Martian' landscapes."
+    }
+  },
+  "drawer": {
+    "routes": "Routes",
+    "history": "History",
+    "regionInfo": "About Region"
   }
 } 

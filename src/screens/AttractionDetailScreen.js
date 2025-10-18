@@ -3,422 +3,240 @@ import {
   ScrollView, 
   View, 
   Text, 
-  Image, 
   StyleSheet,
   TouchableOpacity,
   Linking,
   Dimensions,
   ActivityIndicator
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
-import GoogleAPIService from '../services/GoogleAPIService';
-import { useLanguage } from '../context/LanguageContext';
-import { getUserLocation, getRouteToAttraction } from '../utils/geoUtils';
+import * as ApiService from '../services/ApiService';
+import { mapImage } from '../utils/imageMapper';
+import ReviewCard from '../components/ReviewCard';
 
 const { width } = Dimensions.get('window');
-const TranslatedText = ({ textKey, style, params = {} }) => {
-  const { language } = useLanguage();
-  const [text, setText] = useState(textKey);
 
-  useEffect(() => {
-    let isMounted = true;
-    const translate = async () => {
-      const translationResult = TranslationService.translate(textKey, params);
-      if (typeof translationResult.then === 'function') {
-        translationResult.then(translatedText => {
-          if (isMounted) {
-            setText(translatedText);
-          }
-        });
-      } else {
-        setText(translationResult);
-      }
-    };
-    translate();
-    return () => { isMounted = false; };
-  }, [textKey, language, params]);
-
-  return <Text style={style}>{text}</Text>;
-};
+const API_BASE_URL = 'http://localhost:3000/api';
 
 export const AttractionDetailScreen = ({ route, navigation }) => {
-  const { attraction } = route.params;
+  const { attraction, translatedName, translatedDescription } = route.params;
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
 
   const [placeDetails, setPlaceDetails] = useState(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(true);
+  const [headerImageUri, setHeaderImageUri] = useState(null);
+  
+  const displayName = translatedName || t(attraction.name);
+  const displayDescription = translatedDescription || t(attraction.description);
 
   useEffect(() => {
-    const init = async () => {
-      const location = await getUserLocation();
-      if (location) {
-        setUserLocation(location.userLocation);
+    navigation.setOptions({ title: displayName });
+
+    const loadHeaderImage = async () => {
+      // ПРИОРИТЕТ 1: photoUrl из БД
+      if (attraction.photoUrl) {
+        setHeaderImageUri(attraction.photoUrl);
+        setLoadingDetails(false);
+        console.log('📸 Using photoUrl from database');
+        return;
       }
-    };
-    init();
-  }, []);
 
-  useEffect(() => {
-    const updateTitle = async () => {
-      const translatedTitle = await TranslationService.translate(attraction.name);
-      navigation.setOptions({ title: translatedTitle });
-    };
-    updateTitle();
+      // ПРИОРИТЕТ 2: Локальное изображение
+      if (attraction.image) {
+        const localImage = mapImage(attraction.image);
+        if (localImage) {
+          setHeaderImageUri(localImage);
+          setLoadingDetails(false);
+          console.log('📸 Using local image');
+          return;
+        }
+      }
 
-    const fetchPlaceDetails = async () => {
-      if (!attraction.coordinates) return;
+      // ПРИОРИТЕТ 3: Google Places API
+      if (!attraction.coordinates) {
+        setLoadingDetails(false);
+        return;
+      }
       
-      setLoadingDetails(true);
       try {
-        const places = await GoogleAPIService.findPlaceFromText(`${t(attraction.name)}, ${attraction.location}`);
+        const searchName = await TranslationService.translate(attraction.name, {}, 'en');
+        const places = await PlacesService.searchPlaces(searchName, attraction.coordinates, 1000);
         
-        if (places && places.length > 0) {
-          const details = await GoogleAPIService.getPlaceDetails(places[0].place_id);
+        if (places && places.length > 0 && places[0].place_id) {
+          const details = await ApiService.getPlaceDetails(places[0].place_id);
           setPlaceDetails(details);
+          
+          if (details && details.photos && details.photos.length > 0) {
+            const photoUrl = `${API_BASE_URL}/place-photo?photo_reference=${details.photos[0].photo_reference}`;
+            setHeaderImageUri(photoUrl);
+            console.log('📸 Header photo loaded from Google Places API');
+          }
         }
       } catch (error) {
         console.error("Failed to fetch place details:", error);
+      } finally {
+        setLoadingDetails(false);
       }
-      setLoadingDetails(false);
     };
 
-    fetchPlaceDetails();
-  }, [attraction, navigation]);
+    loadHeaderImage();
+  }, [attraction, navigation, translatedName]);
   
-  const handleGetDirections = async () => {
-    if (!userLocation) {
-      alert('Не удалось получить ваше местоположение.');
-      return;
-    }
-
-    const routeData = await getRouteToAttraction(userLocation, attraction);
-    if (routeData && routeData.success) {
-      navigation.navigate('Map', { aiRoute: routeData, destination: attraction });
-    } else {
-      alert('Не удалось построить маршрут.');
-    }
-  };
-
-  const callPhone = (phone) => {
-    if (phone) {
-      Linking.openURL(`tel:${phone}`);
-    }
-  };
-
-  const openWebsite = (website) => {
-    if (website) {
-      Linking.openURL(`https://${website}`);
-    }
-  };
-
-  const openEmail = (email) => {
-    if (email) {
-      Linking.openURL(`mailto:${email}`);
-    }
-  };
-
-  const renderStars = (rating) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(
-        <Ionicons key={i} name="star" size={16} color="#FFD700" />
-      );
-    }
-
-    if (hasHalfStar) {
-      stars.push(
-        <Ionicons key="half" name="star-half" size={16} color="#FFD700" />
-      );
-    }
-
-    const emptyStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < emptyStars; i++) {
-      stars.push(
-        <Ionicons key={`empty-${i}`} name="star-outline" size={16} color="#FFD700" />
-      );
-    }
-
-    return stars;
-  };
-
-  const renderInfoRow = (icon, labelKey, value) => (
-    <View style={styles.infoRow}>
-      <Ionicons name={icon} size={16} color={theme.colors.primary} />
-      <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-        {t(labelKey)}: {value}
-      </Text>
-    </View>
-  );
+  const callPhone = (phone) => phone && Linking.openURL(`tel:${phone}`);
+  const openWebsite = (website) => website && Linking.openURL(website);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Image source={attraction.image} style={styles.headerImage} />
+      {headerImageUri && (
+        <Image 
+          source={headerImageUri}
+          placeholder={attraction.image ? mapImage(attraction.image) : null}
+          contentFit="cover"
+          transition={500}
+          style={styles.headerImage}
+        />
+      )}
       
       <View style={styles.content}>
-        <TranslatedText textKey={attraction.name} style={[styles.title, { color: theme.colors.text }]} />
+        <Text style={[styles.title, { color: theme.colors.text }]}>
+          {displayName}
+        </Text>
 
         <TouchableOpacity 
           style={styles.locationRow}
           onPress={() => navigation.navigate('Map', { selectedAttractions: [attraction.id] })}
         >
-          <Ionicons name="location" size={16} color={theme.colors.primary} />
+          <Ionicons name="location-outline" size={16} color={theme.colors.textSecondary} />
           <Text style={[styles.location, { color: theme.colors.textSecondary }]}>
             {attraction.location}
           </Text>
         </TouchableOpacity>
-        <View style={[styles.descriptionCard, { backgroundColor: theme.colors.cardBackground }]}>
-          <TranslatedText textKey={attraction.description} style={[styles.description, { color: theme.colors.text }]} />
-        </View>
-        <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
-          {placeDetails?.rating ? (
-            <View style={styles.ratingRow}>
-              <View style={styles.ratingContainer}>
-                <Text style={[styles.ratingText, { color: theme.colors.text, fontSize: 18, marginRight: 8 }]}>{placeDetails.rating.toFixed(1)}</Text>
-                <View style={styles.starsContainer}>
-                  {renderStars(placeDetails.rating)}
-                </View>
-              </View>
-              {placeDetails.user_ratings_total && (
-                <Text style={{ color: theme.colors.textSecondary }}>
-                  ({placeDetails.user_ratings_total} {t('common.reviews')})
-                </Text>
-              )}
-            </View>
-          ) : attraction.rating ? (
-            <View style={styles.ratingRow}>
-               <View style={styles.ratingContainer}>
-                <Text style={[styles.ratingText, { color: theme.colors.text, marginRight: 8 }]}>{attraction.rating}/5</Text>
-                <View style={styles.starsContainer}>
-                  {renderStars(attraction.rating)}
-                </View>
-              </View>
-            </View>
-          ) : null}
-          
-          {attraction.visitDuration && (
-            <View style={[styles.durationContainer, { marginTop: placeDetails?.rating || attraction.rating ? 10 : 0 }]}>
-              <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
-              <Text style={[styles.durationText, { color: theme.colors.textSecondary }]}>
-                {attraction.visitDuration}
-              </Text>
-            </View>
-          )}
-        </View>
-        {loadingDetails && <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }} />}
-        
-        {placeDetails && (
-          <View>
-            {placeDetails.photos && placeDetails.photos.length > 0 && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                  {t('common.photos')}
-                </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosContainer}>
-                  {placeDetails.photos.slice(0, 5).map((photo, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo.photo_reference}&key=${GoogleAPIService.apiKey}` }}
-                      style={styles.placeImage}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-            {placeDetails.reviews && placeDetails.reviews.length > 0 && (
-              <View style={styles.section}>
-                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                  {t('common.reviewsTitle')}
-                </Text>
-                <View style={styles.reviewsContainer}>
-                  {placeDetails.reviews.slice(0, 2).map((review, index) => (
-                    <View key={index} style={[styles.reviewItem, { backgroundColor: theme.colors.cardBackground, borderLeftColor: theme.colors.primary }]}>
-                      <View style={styles.reviewHeader}>
-                        <Image source={{ uri: review.profile_photo_url }} style={styles.authorImage} />
-                        <View>
-                          <Text style={[styles.reviewAuthor, { color: theme.colors.text }]}>{review.author_name}</Text>
-                          <Text style={{ color: theme.colors.textSecondary }}>{review.relative_time_description}</Text>
-                        </View>
-                      </View>
-                      <Text style={[styles.reviewText, { color: theme.colors.textSecondary }]}>{review.text}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        )}
+
+        <InfoSection title={t('attractionDetail.descriptionTitle')}>
+          <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>
+            {displayDescription}
+          </Text>
+        </InfoSection>
+
         {attraction.historicalInfo && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              {t('screens.attractionDetail.historicalInfo')}
-            </Text>
+          <InfoSection title={t('attractionDetail.historicalInfo')}>
             <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>
-              {attraction.historicalInfo}
+              {t(attraction.historicalInfo)}
             </Text>
-          </View>
+          </InfoSection>
         )}
+
+        {loadingDetails ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }} />
+        ) : (
+          placeDetails && (
+            <>
+              {placeDetails.photos && placeDetails.photos.length > 0 && (
+                <InfoSection title={t('common.photos')}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {placeDetails.photos.slice(0, 5).map((photo, index) => (
+                      <Image
+                        key={index}
+                        source={`${API_BASE_URL}/place-photo?photo_reference=${photo.photo_reference}`}
+                        contentFit="cover"
+                        transition={300}
+                        style={styles.placeImage}
+                      />
+                    ))}
+                  </ScrollView>
+                </InfoSection>
+              )}
+
+              {placeDetails.reviews && placeDetails.reviews.length > 0 && (
+                <InfoSection title={t('common.reviewsTitle')}>
+                  {placeDetails.reviews.slice(0, 5).map((review, index) => (
+                    <ReviewCard key={review.time || index} review={review} />
+                  ))}
+                </InfoSection>
+              )}
+            </>
+          )
+        )}
+        
         {attraction.workingHours && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              {t('screens.attractionDetail.workingHours')}
-            </Text>
-            <View style={[styles.workingHoursCard, { backgroundColor: theme.colors.cardBackground }]}>
-              <View style={styles.workingHoursRow}>
-                <Text style={[styles.workingHoursLabel, { color: theme.colors.text }]}>
-                  {t('screens.attractionDetail.weekdays')}:
-                </Text>
-                <Text style={[styles.workingHoursValue, { color: theme.colors.textSecondary }]}>
-                  {attraction.workingHours.weekdays}
-                </Text>
-              </View>
-              <View style={styles.workingHoursRow}>
-                <Text style={[styles.workingHoursLabel, { color: theme.colors.text }]}>
-                  {t('screens.attractionDetail.weekend')}:
-                </Text>
-                <Text style={[styles.workingHoursValue, { color: theme.colors.textSecondary }]}>
-                  {attraction.workingHours.weekend}
-                </Text>
-              </View>
-              {attraction.workingHours.dayOff && (
-                <View style={styles.workingHoursRow}>
-                  <Text style={[styles.workingHoursLabel, { color: theme.colors.text }]}>
-                    {t('screens.attractionDetail.dayOff')}:
-                  </Text>
-                  <Text style={[styles.workingHoursValue, { color: theme.colors.textSecondary }]}>
-                    {attraction.workingHours.dayOff}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
+            <InfoSection title={t('attractionDetail.workingHours')}>
+                <WorkingHoursRow label={t('attractionDetail.weekdays')} value={attraction.workingHours.weekdays} theme={theme} />
+                <WorkingHoursRow label={t('attractionDetail.weekend')} value={attraction.workingHours.weekend} theme={theme} />
+                {attraction.workingHours.dayOff && <WorkingHoursRow label={t('attractionDetail.dayOff')} value={attraction.workingHours.dayOff} theme={theme} />}
+            </InfoSection>
         )}
-        {(attraction.bestTimeToVisit || attraction.accessibility) && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              {t('screens.attractionDetail.usefulInfoTitle')}
-            </Text>
-            <View style={[styles.infoGrid, { backgroundColor: theme.colors.cardBackground }]}>
-              {attraction.bestTimeToVisit && (
-                <View style={styles.infoItem}>
-                  <Ionicons name="sunny" size={20} color={theme.colors.primary} />
-                  <View style={styles.infoTextContainer}>
-                    <Text style={[styles.infoLabel, { color: theme.colors.text }]}>
-                      {t('screens.attractionDetail.bestTimeToVisit')}
-                    </Text>
-                    <Text style={[styles.infoValue, { color: theme.colors.textSecondary }]}>
-                      {attraction.bestTimeToVisit}
-                    </Text>
-                  </View>
-                </View>
-              )}
-              {attraction.accessibility && (
-                <View style={styles.infoItem}>
-                  <Ionicons name="accessibility" size={20} color={theme.colors.primary} />
-                  <View style={styles.infoTextContainer}>
-                    <Text style={[styles.infoLabel, { color: theme.colors.text }]}>
-                      {t('screens.attractionDetail.accessibility')}
-                    </Text>
-                    <Text style={[styles.infoValue, { color: theme.colors.textSecondary }]}>
-                      {attraction.accessibility}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
+        
         {attraction.tips && attraction.tips.length > 0 && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              {t('screens.attractionDetail.tips')}
-            </Text>
-            <View style={[styles.tipsContainer, { backgroundColor: theme.colors.cardBackground }]}>
-              {attraction.tips.map((tip, index) => (
-                <View key={index} style={styles.tipItem}>
-                  <Ionicons name="bulb" size={16} color={theme.colors.primary} />
-                  <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
-                    {tip}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
+          <InfoSection title={t('attractionDetail.tips')}>
+            {attraction.tips.map((tip, index) => (
+              <TipItem key={index} tip={t(tip)} theme={theme} />
+            ))}
+          </InfoSection>
         )}
+        
         {attraction.contacts && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              {t('screens.attractionDetail.contacts')}
-            </Text>
-            <View style={[styles.contactsCard, { backgroundColor: theme.colors.cardBackground }]}>
-              {attraction.contacts.address && (
-                <View style={styles.contactItem}>
-                  <Ionicons name="location" size={20} color={theme.colors.primary} />
-                  <Text style={[styles.contactText, { color: theme.colors.textSecondary }]}>
-                    {attraction.contacts.address}
-                  </Text>
-                </View>
-              )}
-              {attraction.contacts.phone && (
-                <TouchableOpacity 
-                  style={styles.contactItem}
-                  onPress={() => callPhone(attraction.contacts.phone)}
-                >
-                  <Ionicons name="call" size={20} color={theme.colors.primary} />
-                  <Text style={[styles.contactText, styles.contactLink, { color: theme.colors.primary }]}>
-                    {attraction.contacts.phone}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {attraction.contacts.email && (
-                <TouchableOpacity 
-                  style={styles.contactItem}
-                  onPress={() => openEmail(attraction.contacts.email)}
-                >
-                  <Ionicons name="mail" size={20} color={theme.colors.primary} />
-                  <Text style={[styles.contactText, styles.contactLink, { color: theme.colors.primary }]}>
-                    {attraction.contacts.email}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {attraction.contacts.website && (
-                <TouchableOpacity 
-                  style={styles.contactItem}
-                  onPress={() => openWebsite(attraction.contacts.website)}
-                >
-                  <Ionicons name="globe" size={20} color={theme.colors.primary} />
-                  <Text style={[styles.contactText, styles.contactLink, { color: theme.colors.primary }]}>
-                    {attraction.contacts.website}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          <InfoSection title={t('attractionDetail.contacts')}>
+            {attraction.contacts.phone && <ContactItem icon="call-outline" text={attraction.contacts.phone} onPress={() => callPhone(attraction.contacts.phone)} theme={theme} />}
+            {placeDetails?.website && <ContactItem icon="globe-outline" text={placeDetails.website} onPress={() => openWebsite(placeDetails.website)} theme={theme} />}
+          </InfoSection>
         )}
+
+      </View>
+      <View style={[styles.footer, {backgroundColor: theme.colors.background}]}>
         <TouchableOpacity 
           style={[styles.mapButton, { backgroundColor: theme.colors.primary }]}
           onPress={() => navigation.navigate('Map', { selectedAttractions: [attraction.id] })}
         >
-          <Ionicons name="map" size={20} color="#FFFFFF" />
+          <Ionicons name="map-outline" size={20} color="#FFFFFF" />
           <Text style={styles.mapButtonText}>{t('common.showOnMap')}</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.mapButton, { backgroundColor: theme.colors.secondary, marginTop: 10 }]}
-          onPress={handleGetDirections}
+          style={[styles.routeButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => navigation.navigate('Map', { routeFromUserTo: attraction })}
         >
-          <Ionicons name="navigate" size={20} color="#FFFFFF" />
-          <Text style={styles.mapButtonText}>{t('screens.attractionDetail.getDirections')}</Text>
+          <Ionicons name="navigate-outline" size={24} color="white" />
+          <Text style={styles.routeButtonText}>{t('attractionDetail.buildRoute')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 };
+
+const InfoSection = ({ title, children }) => {
+    const { theme } = useTheme();
+    return (
+        <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{title}</Text>
+            {children}
+        </View>
+    );
+};
+
+const WorkingHoursRow = ({ label, value, theme }) => (
+    <View style={styles.workingHoursRow}>
+        <Text style={[styles.workingHoursLabel, { color: theme.colors.text }]}>{label}</Text>
+        <Text style={[styles.workingHoursValue, { color: theme.colors.textSecondary }]}>{value}</Text>
+    </View>
+);
+
+const TipItem = ({ tip, theme }) => (
+    <View style={styles.tipItem}>
+        <Ionicons name="bulb-outline" size={20} color={theme.colors.primary} style={styles.tipIcon} />
+        <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{tip}</Text>
+    </View>
+);
+
+const ContactItem = ({ icon, text, onPress, theme }) => (
+    <TouchableOpacity style={styles.contactItem} onPress={onPress} disabled={!onPress}>
+        <Ionicons name={icon} size={20} color={theme.colors.primary} />
+        <Text style={[styles.contactText, { color: theme.colors.primary, textDecorationLine: onPress ? 'underline' : 'none' }]}>{text}</Text>
+    </TouchableOpacity>
+);
+
 
 const styles = StyleSheet.create({
   container: {
@@ -426,212 +244,114 @@ const styles = StyleSheet.create({
   },
   headerImage: {
     width: width,
-    height: 250,
-    resizeMode: 'cover',
+    height: 280,
   },
   content: {
     padding: 20,
+    paddingBottom: 100,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 8,
-    lineHeight: 30,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   location: {
     marginLeft: 6,
     fontSize: 14,
-    fontStyle: 'italic',
-    textDecorationLine: 'underline',
-  },
-  descriptionCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  infoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    marginRight: 8,
-  },
-  ratingText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  durationText: {
-    marginLeft: 6,
-    fontSize: 14,
-  },
-  description: {
-    fontSize: 16,
-    lineHeight: 24,
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
   },
-  workingHoursCard: {
+  placeImage: {
+    width: 160,
+    height: 120,
     borderRadius: 12,
-    padding: 16,
+    marginRight: 10,
   },
   workingHoursRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    paddingVertical: 8,
   },
   workingHoursLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   workingHoursValue: {
-    fontSize: 14,
-  },
-  infoGrid: {
-    borderRadius: 12,
-    padding: 16,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  infoTextContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  tipsContainer: {
-    borderRadius: 12,
-    padding: 16,
+    fontSize: 16,
   },
   tipItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  tipText: {
-    marginLeft: 12,
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+  tipIcon: {
+    marginRight: 12,
+    marginTop: 2,
   },
-  contactsCard: {
-    borderRadius: 12,
-    padding: 16,
+  tipText: {
+    flex: 1,
+    fontSize: 16,
+    lineHeight: 22,
   },
   contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingVertical: 10,
   },
   contactText: {
     marginLeft: 12,
-    fontSize: 14,
-    flex: 1,
+    fontSize: 16,
   },
-  contactLink: {
-    textDecorationLine: 'underline',
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderColor: '#e0e0e0',
+    gap: 12,
   },
   mapButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderRadius: 12,
-    marginTop: 20,
+    borderRadius: 15,
   },
   mapButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    marginLeft: 12,
-    fontSize: 14,
-  },
-  placesSection: {
-    marginTop: 0,
-  },
-  photosContainer: {
-    marginTop: 0,
-  },
-  placeImage: {
-    width: 150,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  reviewsContainer: {
-    marginTop: 0,
-  },
-  reviewItem: {
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  authorImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  reviewAuthor: {
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginLeft: 10,
   },
-  reviewText: {
-    fontStyle: 'italic',
-    fontSize: 14,
-    lineHeight: 20,
-  }
+  routeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  routeButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
 }); 

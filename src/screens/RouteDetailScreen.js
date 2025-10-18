@@ -1,225 +1,282 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { ATTRACTIONS } from '../constants/data.js'; 
+import { Ionicons } from '@expo/vector-icons';
+import * as ApiService from '../services/ApiService';
+import MapView, { Marker } from 'react-native-maps';
+import { AttractionCard } from '../components/AttractionCard';
+
+const { width } = Dimensions.get('window');
 
 export const RouteDetailScreen = ({ route, navigation }) => {
-  const { route: routeData } = route.params;
+  const { routeId } = route.params;
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
+  const mapRef = useRef(null);
 
-  // Получаем достопримечательности по их ID
-  const getAttractions = () => {
-    return routeData.attractions.map(attractionId => 
-      ATTRACTIONS.find(attraction => attraction.id === attractionId)
-    ).filter(Boolean); 
+  const [routeData, setRouteData] = useState(null);
+  const [attractions, setAttractions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchRouteDetails = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // Fetch all routes and attractions in parallel
+        const [allRoutes, allAttractions] = await Promise.all([
+          ApiService.getRoutes(),
+          ApiService.getAttractions()
+        ]);
+
+        const currentRoute = allRoutes.find(r => r.id === routeId);
+
+        if (!currentRoute) {
+          throw new Error('Route not found');
+        }
+
+        const routeAttractions = currentRoute.attractions
+          .map(id => allAttractions.find(a => a.id === id))
+          .filter(Boolean);
+        
+        setRouteData(currentRoute);
+        setAttractions(routeAttractions);
+
+      } catch (e) {
+        console.error("Failed to fetch route details:", e);
+        setError(t('errors.fetchDataFailed'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRouteDetails();
+  }, [routeId]);
+
+  const onMapReady = () => {
+    if (mapRef.current && attractions.length > 0) {
+      const identifiers = attractions.map(a => a.id);
+      mapRef.current.fitToSuppliedMarkers(identifiers, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
   };
 
-  const attractions = getAttractions();
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
+  if (error || !routeData) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: theme.colors.text }}>{error || t('screens.routeDetail.notFound')}</Text>
+      </View>
+    );
+  }
+  
   return (
-    <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-      <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScrollView>
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.closeButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
+            <Image 
+              source={routeData.photoUrl ? { uri: routeData.photoUrl } : require('../assets/pavlodar-region.jpg')} 
+              style={styles.headerImage} 
+            />
+            <View style={styles.headerOverlay} />
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={28} color="white" />
+            </TouchableOpacity>
+            <Text style={styles.title}>{t(routeData.name)}</Text>
         </View>
 
-        <ScrollView style={styles.scrollContent}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>
-            {t(routeData.name)}
-          </Text>
-
-          <View style={styles.typeContainer}>
-            <View style={styles.typeItem}>
-              <Icon name="time-outline" size={20} color="#3B82F6" />
-              <Text style={styles.typeText}>{t(routeData.duration)}</Text>
+        <View style={styles.content}>
+            <View style={styles.infoRow}>
+                <InfoChip icon="time-outline" text={routeData.duration} theme={theme} />
+                <InfoChip icon="trending-up-outline" text={routeData.difficulty} theme={theme} />
+                <InfoChip icon="car-sport-outline" text={routeData.recommendedTransport} theme={theme} />
             </View>
-            <View style={styles.typeItem}>
-              <Icon name="footsteps-outline" size={20} color="#3B82F6" />
-              <Text style={styles.typeText}>{t(`difficulty.${routeData.difficulty.toLowerCase()}`)}</Text>
+            
+            <Text style={[styles.description, { color: theme.colors.textSecondary }]}>
+                {t(routeData.description)}
+            </Text>
+
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screens.routeDetail.mapTitle')}</Text>
+            <View style={styles.mapContainer}>
+                <MapView
+                    ref={mapRef}
+                    style={styles.map}
+                    onMapReady={onMapReady}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                >
+                    {attractions.map(attraction => (
+                        <Marker
+                            key={attraction.id}
+                            identifier={attraction.id}
+                            coordinate={attraction.coordinates}
+                            title={t(attraction.name)}
+                        />
+                    ))}
+                </MapView>
             </View>
-            <View style={styles.typeItem}>
-              <Icon name="car-outline" size={20} color="#3B82F6" />
-              <Text style={styles.typeText}>{t(`transport.${routeData.recommendedTransport.toLowerCase().replace(/\//g, '_')}`)}</Text>
+
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screens.routeDetail.attractionsTitle')}</Text>
+            {attractions.map(attraction => (
+              <AttractionCard 
+                key={attraction.id} 
+                item={attraction} 
+              />
+            ))}
+
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screens.routeDetail.tipsTitle')}</Text>
+            <View style={styles.tipsContainer}>
+                {routeData.tips.map((tip, index) => (
+                    <View key={index} style={styles.tipItem}>
+                        <Ionicons name="checkmark-circle-outline" size={22} color={theme.colors.primary} style={styles.tipIcon} />
+                        <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{t(tip)}</Text>
+                    </View>
+                ))}
             </View>
-          </View>
-
-          <Text style={[styles.description, { color: theme.colors.textSecondary }]}>
-            {t(routeData.description)}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            {t('routes.attractionsTitle')}
-          </Text>
-
-          {attractions.map((attraction, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={styles.attractionItem}
-              onPress={() => navigation.navigate('AttractionDetail', { attraction })}
-            >
-              {attraction.image && (
-                <Image 
-                  source={attraction.image} 
-                  style={styles.attractionImage} 
-                />
-              )}
-              <View style={styles.attractionInfo}>
-                <Text style={[styles.attractionName, { color: theme.colors.text }]}>
-                  {t(attraction.name)}
-                </Text>
-                <Text style={[styles.attractionLocation, { color: theme.colors.textSecondary }]}>
-                  {attraction.location}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            {t('routes.tipsTitle')}
-          </Text>
-
-          {routeData.tips.map((tip, index) => (
-            <View key={index} style={styles.tipItem}>
-              <Icon name="checkmark-circle" size={20} color="#10B981" style={styles.tipIcon} />
-              <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{t(tip)}</Text>
-            </View>
-          ))}
-
-          <TouchableOpacity 
-            style={styles.startButton}
-            onPress={() => {
-              navigation.navigate('Map', { selectedRoute: routeData.id });
-            }}
-          >
-            <Icon name="paper-plane" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-            <Text style={styles.buttonText}>{t('routes.startRouteButton')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
+      <TouchableOpacity 
+        style={[styles.startButton, { backgroundColor: theme.colors.primary }]}
+        onPress={() => navigation.navigate('Map', { selectedRoute: routeData.id })}
+      >
+        <Ionicons name="navigate-outline" size={24} color="white" />
+        <Text style={styles.startButtonText}>{t('screens.routeDetail.startButton')}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
+const InfoChip = ({ icon, text, theme }) => (
+    <View style={[styles.infoChip, { backgroundColor: theme.colors.cardBackground, shadowColor: theme.colors.text }]}>
+        <Ionicons name={icon} size={20} color={theme.colors.primary} />
+        <Text style={[styles.infoChipText, { color: theme.colors.textSecondary }]}>{text}</Text>
+    </View>
+);
+
 const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '90%',
-    maxHeight: '90%',
-    borderRadius: 15,
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 10,
-  },
-  closeButton: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: '#888',
-  },
-  scrollContent: {
-    padding: 15,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  typeContainer: {
-    flexDirection: 'row',
-    marginBottom: 15,
-  },
-  typeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 20,
-  },
-  typeText: {
-    marginLeft: 5,
-    color: '#3B82F6',
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    marginTop: 10,
-  },
-  attractionItem: {
-    flexDirection: 'row',
-    marginBottom: 15,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 10,
-    overflow: 'hidden',
-    alignItems: 'center',
-  },
-  attractionImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-  },
-  attractionInfo: {
-    flex: 1,
-    padding: 10,
-  },
-  attractionName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  attractionLocation: {
-    fontSize: 12,
-  },
-  tipItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  tipIcon: {
-    marginRight: 10,
-  },
-  tipText: {
-    flex: 1,
-    fontSize: 14,
-  },
-  startButton: {
-    backgroundColor: '#3B82F6',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  buttonIcon: {
-    marginRight: 10,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  }
+    container: {
+        flex: 1,
+    },
+    header: {
+        height: 250,
+        justifyContent: 'flex-end',
+    },
+    headerImage: {
+        ...StyleSheet.absoluteFillObject,
+        width: '100%',
+        height: '100%',
+    },
+    headerOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.4)'
+    },
+    backButton: {
+        position: 'absolute',
+        top: 40,
+        left: 15,
+        padding: 5,
+        zIndex: 10,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: 'white',
+        padding: 20,
+    },
+    content: {
+        padding: 20,
+        paddingBottom: 100, // Space for the start button
+    },
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 20,
+        marginTop: -45,
+    },
+    infoChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        elevation: 3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    infoChipText: {
+        marginLeft: 8,
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    description: {
+        fontSize: 16,
+        lineHeight: 24,
+        marginBottom: 25,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+    },
+    mapContainer: {
+        height: 200,
+        borderRadius: 15,
+        overflow: 'hidden',
+        marginBottom: 20,
+    },
+    map: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    tipsContainer: {
+        backgroundColor: 'transparent',
+    },
+    tipItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 12,
+    },
+    tipIcon: {
+        marginRight: 10,
+        marginTop: 2,
+    },
+    tipText: {
+        flex: 1,
+        fontSize: 15,
+        lineHeight: 22,
+    },
+    startButton: {
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 15,
+        borderRadius: 15,
+        elevation: 5,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    startButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginLeft: 10,
+    }
 });

@@ -1,9 +1,18 @@
-// Translation Service с Google Translate API
-import GoogleAPIService from './GoogleAPIService';
+// Translation Service - полностью оффлайн-работа с локальными JSON
+import ruTranslations from '../i18n/translations/ru.json';
+import enTranslations from '../i18n/translations/en.json';
+import kzTranslations from '../i18n/translations/kz.json';
 
 class TranslationService {
   constructor() {
     this.currentLanguage = 'ru';
+    this.translationCache = {}; // Кэш для переводов
+    this.translations = {
+      ru: ruTranslations,
+      en: enTranslations,
+      kz: kzTranslations
+    };
+    // Оставляем минимальный fallback только для совместимости
     this.fallbackTranslations = {
       ru: {
         'screens.home.title': 'Главная',
@@ -411,57 +420,69 @@ class TranslationService {
     return this.currentLanguage;
   }
 
-  // Синхронное получение перевода из fallback. Если нет, пытаемся получить через Google Translate (асинхронно).
-  translate(key, params = {}) {
+  // Получение значения из вложенного объекта по пути (например, "screens.home.title")
+  getNestedValue(obj, path) {
+    // Проверка на undefined/null path
+    if (!path || typeof path !== 'string') {
+      console.warn('⚠️ TranslationService: path is undefined or not a string:', path);
+      return null;
+    }
+    
+    const keys = path.split('.');
+    let value = obj;
+    for (const key of keys) {
+      if (value && typeof value === 'object' && key in value) {
+        value = value[key];
+      } else {
+        return null;
+      }
+    }
+    return value;
+  }
+
+  // Синхронное получение перевода из локальных JSON файлов
+  translate(key, params = {}, forceLang = null) {
+    const lang = forceLang || this.currentLanguage;
+    
+    // Проверяем кэш
+    const cacheKey = `${lang}:${key}:${JSON.stringify(params)}`;
+    if (this.translationCache[cacheKey]) {
+      return this.translationCache[cacheKey];
+    }
+
     let translation = key; // По умолчанию возвращаем ключ
-    let foundInFallback = false;
 
-    // 1. Пытаемся получить перевод из текущего языка
-    if (this.fallbackTranslations[this.currentLanguage] && this.fallbackTranslations[this.currentLanguage][key]) {
-      translation = this.fallbackTranslations[this.currentLanguage][key];
-      foundInFallback = true;
-    // 2. Если нет, пытаемся получить из английского (как основной текст для перевода)
-    } else if (this.fallbackTranslations.en && this.fallbackTranslations.en[key]) {
-      translation = this.fallbackTranslations.en[key];
-      foundInFallback = true;
+    // 1. Пытаемся получить перевод из JSON файлов
+    if (this.translations[lang]) {
+      const nested = this.getNestedValue(this.translations[lang], key);
+      if (nested !== null) {
+        translation = nested;
+      }
     }
 
-    // Заменяем параметры, если они есть
-    if (foundInFallback) {
-      Object.keys(params).forEach(param => {
-        translation = translation.replace(`{{${param}}}`, params[param]);
-      });
+    // 2. Если не нашли, проверяем fallback (старый формат для совместимости)
+    if (translation === key && this.fallbackTranslations[lang] && this.fallbackTranslations[lang][key]) {
+      translation = this.fallbackTranslations[lang][key];
     }
 
-    // Если перевод не найден в fallback и не является ключом по умолчанию, пробуем Google Translate
-    if (!foundInFallback && key !== translation) { // Если key === translation, значит, мы не нашли его даже в EN fallback
-      console.warn(`Translation for key '${key}' not found in fallback, attempting Google Translate.`);
-      // Возвращаем Promise, чтобы асинхронный перевод мог разрешиться
-      return new Promise(async (resolve) => {
-        try {
-          const translatedText = await GoogleAPIService.translateText(key, this.currentLanguage, 'auto');
-          resolve(translatedText);
-        } catch (error) {
-          console.error('Google Translate API error:', error.message);
-          resolve(key); // Возвращаем ключ при ошибке API
-        }
-      });
-    }
+    // 3. Заменяем параметры {{param}}
+    Object.keys(params).forEach(param => {
+      translation = translation.replace(new RegExp(`\\{\\{${param}\\}\\}`, 'g'), params[param]);
+    });
 
-    // Если перевод найден в fallback или мы просто возвращаем ключ, возвращаем его синхронно
+    // Сохраняем в кэш
+    this.translationCache[cacheKey] = translation;
+
     return translation;
   }
 
-  // Прямой перевод текста
+  // Прямой перевод текста (теперь работает только между тремя языками, оффлайн)
   async translateText(text, targetLanguage = null) {
     const language = targetLanguage || this.currentLanguage;
     
-    try {
-      return await GoogleAPIService.translateText(text, language);
-    } catch (error) {
-      console.error('Text translation error:', error.message);
-      return text;
-    }
+    // Для оффлайн-переводов используем только наши локальные данные
+    // Ищем текст в одном из языков и возвращаем перевод из другого
+    return text; // Упрощенная версия, возвращает исходный текст
   }
 
   // Получение списка поддерживаемых языков
@@ -471,16 +492,6 @@ class TranslationService {
       { code: 'en', name: 'English', nativeName: 'English' },
       { code: 'kz', name: 'Қазақша', nativeName: 'Қазақша' }
     ];
-  }
-
-  // Инициализация с API ключом
-  initialize(googleApiKey) {
-    GoogleAPIService.setApiKey(googleApiKey);
-  }
-
-  // Проверка доступности переводов
-  async checkTranslationAvailability() {
-    return await GoogleAPIService.checkAPIStatus();
   }
 }
 

@@ -8,7 +8,7 @@ export const Header = ({ title, onMenuPress, onMapPress }) => {
   
   return (
     <View style={[styles.header, { 
-      backgroundColor: theme.colors.cardBackground, 
+      backgroundColor: theme.colors.cardBackground,
       borderBottomColor: theme.colors.border 
     }]}>
       <TouchableOpacity 
@@ -19,7 +19,9 @@ export const Header = ({ title, onMenuPress, onMapPress }) => {
         <Ionicons name="menu" size={28} color={theme.colors.text} />
       </TouchableOpacity>
       
-      <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        {title}
+      </Text>
       
       <TouchableOpacity 
         style={styles.rightButton}

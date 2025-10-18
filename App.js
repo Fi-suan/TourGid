@@ -5,13 +5,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { AttractionDetailScreen } from './src/screens/AttractionDetailScreen';
-import { HistoricalFactsScreen } from './src/screens/HistoricalFactsScreen';
+import HistoricalFactsScreen from './src/screens/HistoricalFactsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { RegionInfoScreen } from './src/screens/RegionInfoScreen';
 import { MapScreen } from './src/screens/MapScreen';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { LanguageProvider, useLanguage } from './src/context/LanguageContext';
+import { RegionProvider } from './src/context/RegionContext';
 import TranslationService from './src/services/TranslationService';
+import GoogleAPIService from './src/services/GoogleAPIService';
 import { RoutesScreen } from './src/screens/RoutesScreen';
 import { RouteDetailScreen } from './src/screens/RouteDetailScreen';
 
@@ -27,9 +29,8 @@ function AppContent() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Simulate loading resources
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        // Preload translations or other resources here
+        // Минимальная задержка для плавного перехода
+        await new Promise(resolve => setTimeout(resolve, 300));
       } catch (e) {
         console.warn(e);
       } finally {
@@ -111,7 +112,9 @@ export default function App() {
     <View style={{ flex: 1 }} onLayout={() => {}}>
       <ThemeProvider>
         <LanguageProvider>
-          <AppContent />
+          <RegionProvider>
+            <AppContent />
+          </RegionProvider>
         </LanguageProvider>
       </ThemeProvider>
     </View>

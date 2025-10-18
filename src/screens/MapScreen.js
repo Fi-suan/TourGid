@@ -1,233 +1,288 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
   Text, 
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator,
-  Switch
+  ActivityIndicator
 } from 'react-native';
-import { HistoricalMap } from '../components/HistoricalMap';
-import { ATTRACTIONS, ROUTES } from '../constants/data';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as Location from 'expo-location';
 import { useTheme } from '../context/ThemeContext';
-import TranslationService from '../services/TranslationService';
-import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '../context/LanguageContext';
+import * as ApiService from '../services/ApiService'; // Use ApiService
+import TranslationService from '../services/TranslationService';
+import GoogleAPIService from '../services/GoogleAPIService';
+import { Ionicons } from '@expo/vector-icons';
+import { getDirectionsFromGoogle } from '../utils/geoUtils';
 
 const { width } = Dimensions.get('window');
 
-// Компонент для отображения текста, который может загружаться асинхронно
-const TranslatedText = ({ textKey, style }) => {
-  const { language } = useLanguage();
-  const [text, setText] = useState(textKey);
-
-  useEffect(() => {
-    let isMounted = true;
-    const translate = async () => {
-      const translationResult = TranslationService.translate(textKey);
-      if (typeof translationResult.then === 'function') {
-        translationResult.then(translatedText => {
-          if (isMounted) {
-            setText(translatedText);
-          }
-        });
-      } else {
-        setText(translationResult);
-      }
-    };
-    translate();
-    return () => { isMounted = false; };
-  }, [textKey, language]);
-
-  return <Text style={style}>{text}</Text>;
-};
-
 export const MapScreen = ({ route, navigation }) => {
-  const { selectedAttractions, selectedRoute, aiRoute, destination } = route.params || {};
-  const [selectedMarker, setSelectedMarker] = useState(null);
+  const { selectedAttractions, selectedRoute, aiRoute, routeFromUserTo } = route.params || {};
+  const [markers, setMarkers] = useState([]);
+  const [routes, setRoutes] = useState([]);
   const [attractions, setAttractions] = useState([]);
-  const [showRoute, setShowRoute] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isAIRoute, setIsAIRoute] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const mapRef = useRef(null);
   
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
 
-  // Определяем, какие достопримечательности показывать
   useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location.coords);
+    })();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            console.log('🗺️ MapScreen: Fetching data from backend...');
+            setIsLoading(true);
+            const [fetchedAttractions, fetchedRoutes] = await Promise.all([
+                ApiService.getAttractions(), // Fetch all attractions
+                ApiService.getRoutes()      // Fetch all routes
+            ]);
+            console.log('✅ MapScreen: Got attractions:', fetchedAttractions?.length || 0);
+            console.log('✅ MapScreen: Got routes:', fetchedRoutes?.length || 0);
+            setAttractions(fetchedAttractions || []);
+            setRoutes(fetchedRoutes || []);
+        } catch (error) {
+            console.error("❌ MapScreen: Failed to fetch map data:", error.message);
+            setAttractions([]);
+            setRoutes([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!attractions || attractions.length === 0) {
+      console.log('⚠️ Нет данных о достопримечательностях');
+      setIsLoading(false);
+      return;
+    }
+
     let attractionsToShow = [];
     let shouldShowRoute = false;
-    
-    if (aiRoute) {
-      // AI-сгенерированный маршрут
-      setIsAIRoute(true);
+    let isRouteFromUser = false;
+
+    console.log('🗺️ MapScreen params:', { 
+      routeFromUserTo: !!routeFromUserTo, 
+      aiRoute: !!aiRoute, 
+      selectedRoute, 
+      selectedAttractions: selectedAttractions?.length || 0 
+    });
+
+    if (routeFromUserTo) {
+      attractionsToShow = [routeFromUserTo];
       shouldShowRoute = true;
+      isRouteFromUser = true;
+      console.log('📍 Режим: маршрут от пользователя');
+    } else if (aiRoute) {
       attractionsToShow = [aiRoute.destination];
-      if (aiRoute.route?.waypoints) {
-        const waypointAttractions = aiRoute.route.waypoints
-          .map(wp => ATTRACTIONS.find(a => a.id === wp.attractionId))
-          .filter(Boolean);
-        attractionsToShow = [...attractionsToShow, ...waypointAttractions];
-      }
+      shouldShowRoute = true;
+      console.log('🤖 Режим: AI маршрут');
     } else if (selectedRoute) {
-      // Если выбран маршрут, получаем все его достопримечательности
-      const routeData = ROUTES.find(r => r.id === selectedRoute);
+      const routeData = routes.find(r => r.id === selectedRoute);
       if (routeData) {
         attractionsToShow = routeData.attractions
-          .map(id => ATTRACTIONS.find(a => a.id === id))
+          .map(id => attractions.find(a => a.id === id))
           .filter(Boolean);
         shouldShowRoute = true;
+        console.log('🗺️ Режим: готовый маршрут, мест:', attractionsToShow.length);
       }
     } else if (selectedAttractions && selectedAttractions.length > 0) {
-      // Показ одной или нескольких выбранных достопримечательностей без маршрута
-      attractionsToShow = ATTRACTIONS.filter(a => selectedAttractions.includes(a.id));
+      attractionsToShow = attractions.filter(a => selectedAttractions.includes(a.id));
+      console.log('📍 Режим: выбранные достопримечательности, мест:', attractionsToShow.length);
     } else {
-      // По умолчанию на карте ничего не показываем (ни маркеров, ни маршрутов)
-      attractionsToShow = [];
+      // Show all attractions
+      console.log('🗺️ Режим: все достопримечательности, всего:', attractions.length);
+      const allMarkers = attractions.map(attraction => createMarker(attraction)).filter(Boolean);
+      setMarkers(allMarkers);
+      setIsLoading(false);
+      return;
     }
     
-    const translatedAttractions = attractionsToShow.map(attraction => ({
-      ...attraction,
-      name: t(attraction.name),
-      description: t(attraction.description)
-    }));
+    // Build route if requested
+    if (shouldShowRoute && attractionsToShow.length > 0) {
+      // Создаем маркеры для маршрута
+      const routeMarkers = attractionsToShow.map(createMarker).filter(Boolean);
+      console.log('📌 Создано маркеров:', routeMarkers.length);
+      setMarkers(routeMarkers);
+      buildRoute(attractionsToShow, isRouteFromUser);
+    } else if (attractionsToShow.length > 0) {
+      setIsLoading(false);
+      const newMarkers = attractionsToShow.map(createMarker).filter(Boolean);
+      console.log('📌 Создано маркеров:', newMarkers.length);
+      setMarkers(newMarkers);
+      fitToMarkers(attractionsToShow);
+    } else {
+      console.log('⚠️ Нет достопримечательностей для отображения');
+      setIsLoading(false);
+    }
+  }, [attractions, routes, route.params]); // Rerun when data or params change
+
+  const createMarker = (attraction) => {
+    if (!attraction?.coordinates) return null;
+    return {
+      id: attraction.id,
+      name: attraction.name, // Добавляем для панели
+      coordinates: attraction.coordinates,
+      title: t(attraction.name),
+      location: attraction.location,
+    };
+  };
+
+  const buildRoute = async (routeAttractions, isRouteFromUser = false) => {
+    setIsLoading(true);
+
+    if (isRouteFromUser && !userLocation) {
+      return;
+    }
     
-    setAttractions(translatedAttractions);
-    setShowRoute(shouldShowRoute);
+    const origin = isRouteFromUser ? userLocation : routeAttractions[0].coordinates;
+    const destination = routeAttractions[routeAttractions.length - 1].coordinates;
     
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500); // Уменьшил задержку
-    
-    return () => clearTimeout(timer);
-  }, [selectedAttractions, selectedRoute, aiRoute]);
+    let waypoints = [];
+    if (isRouteFromUser && routeAttractions.length > 1) {
+      waypoints = routeAttractions.slice(0, -1).map(a => a.coordinates);
+    } else if (!isRouteFromUser && routeAttractions.length > 2) {
+      waypoints = routeAttractions.slice(1, -1).map(a => a.coordinates);
+    }
+
+    try {
+      const routeResult = await getDirectionsFromGoogle(origin, destination, waypoints);
+      if (routeResult.success) {
+        setRouteCoordinates(routeResult.route.coordinates);
+        
+        const markersToFit = isRouteFromUser && userLocation 
+          ? [...routeAttractions, { id: 'userLocation', coordinates: userLocation }] 
+          : routeAttractions;
+          
+        fitToMarkers(markersToFit);
+      }
+    } catch (error) {
+      console.error("Route build failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const fitToMarkers = (markers) => {
+    if (mapRef.current) {
+        const markerIdentifiers = markers.map(marker => marker.id);
+        mapRef.current.fitToSuppliedMarkers(markerIdentifiers, {
+            edgePadding: { top: 100, right: 100, bottom: 150, left: 100 },
+            animated: true,
+        });
+    }
+  }
 
   const handleMarkerPress = (attraction) => {
     setSelectedMarker(attraction);
   };
 
   const handleDetailsPress = (attraction) => {
-    navigation.navigate('AttractionDetail', { attraction });
+    // Передаем переведенные данные
+    const translatedName = t(attraction.name);
+    const translatedDescription = t(attraction.description);
+    navigation.navigate('AttractionDetail', { 
+      attraction, 
+      translatedName, 
+      translatedDescription 
+    });
   };
-
-  const renderAIRouteInfo = () => {
-    if (!isAIRoute || !aiRoute) return null;
-
+  
+  if (isLoading) {
     return (
-      <View style={[styles.aiRouteInfo, { backgroundColor: theme.colors.primary }]}>
-        <View style={styles.aiRouteHeader}>
-          <Ionicons name="sparkles" size={20} color="white" />
-          <Text style={styles.aiRouteTitle}>AI Маршрут</Text>
-        </View>
-        <Text style={styles.aiRouteDestination}>
-          К {aiRoute.destination.name}
-        </Text>
-        {aiRoute.route.preferences && aiRoute.route.preferences.length > 0 && (
-          <View style={styles.aiPreferences}>
-            {aiRoute.route.preferences.map((pref, index) => (
-              <View key={index} style={styles.preferenceTag}>
-                <Text style={styles.preferenceText}>
-                  {getPreferenceLabel(pref)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    );
-  };
-
-  const getPreferenceLabel = (preference) => {
-    const labels = {
-      'scenic': '🌅 Живописный',
-      'historical': '🏛️ Исторический',
-      'cultural': '🎨 Культурный',
-      'short': '⚡ Быстрый',
-      'avoid_crowds': '🚶 Без толп'
-    };
-    return labels[preference] || preference;
-  };
-
-  const renderAttractionPanel = () => {
-    if (!selectedMarker) return null;
-
-    return (
-      <View style={[styles.attractionPanel, { backgroundColor: theme.colors.cardBackground }]}>
-        {isAIRoute && (
-          <View style={styles.aiPanelHeader}>
-            <Ionicons name="sparkles" size={16} color={theme.colors.primary} />
-            <Text style={[styles.aiPanelText, { color: theme.colors.primary }]}>
-              Предложено AI
-            </Text>
-          </View>
-        )}
-        
-        <Text style={[styles.attractionName, { color: theme.colors.text }]}>{selectedMarker.name}</Text>
-        <Text style={[styles.attractionLocation, { color: theme.colors.textSecondary }]}>
-          {selectedMarker.location}
-        </Text>
-        
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.detailsButton, { backgroundColor: theme.colors.primary, flex: 1 }]}
-            onPress={() => handleDetailsPress(selectedMarker)}
-          >
-            <Text style={styles.detailsButtonText}>{t('common.details')}</Text>
-            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-
-          {/* Кнопка "Построить маршрут" */}
-          <TouchableOpacity 
-            style={[styles.routeButton, { borderColor: theme.colors.primary }]}
-            onPress={() => {
-              navigation.navigate('Map', { 
-                aiRoute: { destination: selectedMarker },
-                isAIRoute: true
-              });
-            }}
-          >
-            <Ionicons name="navigate" size={16} color={theme.colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  if (loading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-          {isAIRoute ? 'Строим AI маршрут...' : TranslationService.translate('common.loadingMap')}
-        </Text>
+        <Text style={{ color: theme.colors.text, marginTop: 10 }}>{t('common.loadingMap')}</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {renderAIRouteInfo()}
-      
-      {/* Убираем переключатель "Показать маршрут", так как маршрут показывается автоматически при выборе */}
-      
-      <HistoricalMap 
-        attractions={attractions}
-        onMarkerPress={handleMarkerPress}
-        showRoute={showRoute}
-        aiRoute={aiRoute}
-        isAIRoute={isAIRoute}
-        // Маркеры показываются только если есть достопримечательности для отображения
-        showMarkers={attractions.length > 0}
-      />
-      
-      {renderAttractionPanel()}
+    <View style={styles.container}>
+      <MapView
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={attractions.length > 0 ? {
+          ...attractions[0].coordinates,
+          latitudeDelta: 0.1,
+          longitudeDelta: 0.1,
+        } : {
+          latitude: 52.2973,
+          longitude: 76.9617,
+          latitudeDelta: 0.1,
+          longitudeDelta: 0.1,
+        }}
+        showsUserLocation={true}
+      >
+        {markers.map(marker => (
+          <Marker
+            key={marker.id}
+            identifier={marker.id}
+            coordinate={marker.coordinates}
+            title={marker.title}
+            onPress={() => handleMarkerPress(marker)}
+          />
+        ))}
+        {userLocation && (
+          <Marker
+            identifier="userLocation"
+            coordinate={userLocation}
+            title="My Location"
+            pinColor="blue"
+          />
+        )}
+        {routeCoordinates.length > 0 && (
+          <Polyline
+            coordinates={routeCoordinates}
+            strokeColor={theme.colors.primary}
+            strokeWidth={4}
+          />
+        )}
+      </MapView>
+
+      {selectedMarker && (
+        <View style={[styles.attractionPanel, { backgroundColor: theme.colors.cardBackground }]}>
+          <Text style={[styles.attractionName, { color: theme.colors.text }]}>{t(selectedMarker.name)}</Text>
+          <Text style={[styles.attractionLocation, { color: theme.colors.textSecondary }]}>
+            {selectedMarker.location}
+          </Text>
+          <TouchableOpacity 
+            style={[styles.detailsButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => handleDetailsPress(selectedMarker)}
+          >
+            <Text style={styles.detailsButtonText}>{t('common.details')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  map: {
     flex: 1,
   },
   loadingContainer: {
@@ -239,62 +294,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
   },
-  aiRouteInfo: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    right: 10,
-    zIndex: 1,
-    borderRadius: 12,
-    padding: 12,
-  },
-  aiRouteHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  aiRouteTitle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 6,
-  },
-  aiRouteDestination: {
-    color: 'white',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  aiPreferences: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  preferenceTag: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginRight: 6,
-    marginBottom: 4,
-  },
-  preferenceText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  routeToggle: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 8,
-    padding: 8,
-  },
-  routeToggleText: {
-    marginRight: 8,
-    fontSize: 14,
-  },
   attractionPanel: {
     position: 'absolute',
     bottom: 20,
@@ -302,16 +301,11 @@ const styles = StyleSheet.create({
     right: 20,
     padding: 15,
     borderRadius: 10,
-  },
-  aiPanelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  aiPanelText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   attractionName: {
     fontSize: 18,
@@ -323,29 +317,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 12,
     borderRadius: 8,
+    alignItems: 'center',
   },
   detailsButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
-    marginRight: 5,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    marginTop: 12,
-  },
-  routeButton: {
-    paddingHorizontal: 12,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
 }); 

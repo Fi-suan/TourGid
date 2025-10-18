@@ -6,7 +6,6 @@ import TranslationService from '../services/TranslationService';
 
 export const InterestSelector = ({ interests, onSelect, selectedInterest }) => {
   const { theme } = useTheme();
-  const t = (key, params) => TranslationService.translate(key, params);
   
   return (
     <View style={styles.container}>
@@ -51,18 +50,19 @@ export const InterestSelector = ({ interests, onSelect, selectedInterest }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   interestItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 25,
     marginRight: 10,
   },
   interestText: {
     marginLeft: 8,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 14,
   }
 }); 

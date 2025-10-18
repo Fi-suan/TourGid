@@ -1,225 +1,147 @@
-import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  Image, 
-  TouchableOpacity,
-  Linking,
-  Dimensions
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator, SafeAreaView } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
-import { REGIONS } from '../constants/data';
+import * as ApiService from '../services/ApiService';
+import { mapImage } from '../utils/imageMapper';
 
 const { width } = Dimensions.get('window');
 
 export const RegionInfoScreen = ({ route }) => {
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
-  
-  const regionId = route?.params?.regionId || 'pavlodar';
-  const regionData = REGIONS.find(r => r.id === regionId) || REGIONS[0];
+  const { regionId } = route.params;
+
+  const [region, setRegion] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchRegionData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // We fetch all regions and then find the one we need.
+        // A dedicated /api/regions/:id endpoint would be an optimization.
+        const regions = await ApiService.getRegions();
+        const currentRegion = regions.find(r => r.id === regionId);
+        if (currentRegion) {
+          setRegion(currentRegion);
+        } else {
+          throw new Error('Region not found');
+        }
+      } catch (e) {
+        console.error("Failed to fetch region data:", e);
+        setError(t('errors.fetchDataFailed'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRegionData();
+  }, [regionId]);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (error || !region) {
+    return (
+      <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
+        <Text style={{ color: theme.colors.text }}>{error || t('errors.regionNotFound')}</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Image 
-        source={require('../assets/pavlodar-region.jpg')} 
-        style={styles.headerImage}
-      />
-      
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          {regionData.name}
-        </Text>
-        
-        <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
-          <View style={styles.infoRow}>
-            <Ionicons name="location" size={20} color={theme.colors.primary} />
-            <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              {regionData.description}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="people" size={20} color={theme.colors.primary} />
-            <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              Население: {regionData.population}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="thermometer" size={20} color={theme.colors.primary} />
-            <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              Климат: {regionData.climate}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar" size={20} color={theme.colors.primary} />
-            <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-              Основан: {regionData.founded}
-            </Text>
-          </View>
+    <SafeAreaView style={{flex: 1, backgroundColor: theme.colors.background}}>
+        <ScrollView style={styles.container}>
+        <Image 
+          source={region.photoUrl || mapImage(region.mapImage)} 
+          placeholder={mapImage(region.mapImage)}
+          contentFit="cover"
+          transition={500}
+          style={styles.mapImage} 
+        />
+        <View style={styles.content}>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{t(region.name)}</Text>
+            <Text style={[styles.description, { color: theme.colors.textSecondary }]}>{t(region.description)}</Text>
+            
+            <InfoSection title={t('regionInfo.geography')}>
+                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.geography)}</Text>
+            </InfoSection>
+
+            <InfoSection title={t('regionInfo.history')}>
+                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.history)}</Text>
+            </InfoSection>
+
+            <InfoSection title={t('regionInfo.culture')}>
+                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.culture)}</Text>
+            </InfoSection>
+
+            <InfoSection title={t('regionInfo.nature')}>
+                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.nature)}</Text>
+            </InfoSection>
         </View>
-        
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          {t('regionInfo.geographyTitle')}
-        </Text>
-        <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
-          {t('regionInfo.geography')}
-        </Text>
-        
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          {t('regionInfo.historyTitle')}
-        </Text>
-        <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
-          {t('regionInfo.historyDescription')}
-        </Text>
-        
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          {t('regionInfo.cultureTitle')}
-        </Text>
-        <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
-          {t('regionInfo.culture')}
-        </Text>
-        
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          {t('regionInfo.natureTitle')}
-        </Text>
-        <Text style={[styles.paragraph, { color: theme.colors.textSecondary }]}>
-          {t('regionInfo.nature')}
-        </Text>
-        
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          {t('regionInfo.mainAttractionsTitle')}
-        </Text>
-        <View style={styles.attractionsList}>
-          <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            {t('regionInfo.attraction1')}
-          </Text>
-          <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            {t('regionInfo.attraction2')}
-          </Text>
-          <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            {t('regionInfo.attraction3')}
-          </Text>
-          <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            {t('regionInfo.attraction4')}
-          </Text>
-          <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            {t('regionInfo.attraction5')}
-          </Text>
-          <Text style={[styles.attractionItem, { color: theme.colors.textSecondary }]}>
-            {t('regionInfo.attraction6')}
-          </Text>
-        </View>
-        
-        <View style={styles.linksContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            {t('regionInfo.links')}
-          </Text>
-          
-          <TouchableOpacity 
-            style={[styles.linkButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => Linking.openURL('https://pavlodar.gov.kz/ru')}
-          >
-            <Ionicons name="globe" size={20} color="#FFFFFF" />
-            <Text style={styles.linkText}>
-              {t('regionInfo.officialSite')}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.linkButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => Linking.openURL('https://kazakhstan.travel/ru/guide/regions/pavlodar')}
-          >
-            <Ionicons name="airplane" size={20} color="#FFFFFF" />
-            <Text style={styles.linkText}>
-              {t('regionInfo.touristPortal')}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.linkButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => Linking.openURL('https://2gis.kz/pavlodar')}
-          >
-            <Ionicons name="map" size={20} color="#FFFFFF" />
-            <Text style={styles.linkText}>
-              {t('regionInfo.map')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+        </ScrollView>
+    </SafeAreaView>
   );
 };
 
+const InfoSection = ({ title, children }) => {
+    const { theme } = useTheme();
+    return (
+        <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{title}</Text>
+            {children}
+        </View>
+    );
+};
+
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
   },
-  headerImage: {
+  mapImage: {
     width: width,
-    height: 200,
-    resizeMode: 'cover',
+    height: 250,
   },
   content: {
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 24,
     marginBottom: 20,
   },
-  infoCard: {
-    marginBottom: 25,
-    borderRadius: 12,
-    padding: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 15,
-  },
-  infoText: {
-    marginLeft: 12,
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+  section: {
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 12,
-    marginTop: 20,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    paddingBottom: 5,
   },
-  paragraph: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  attractionsList: {
-    marginBottom: 20,
-  },
-  attractionItem: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  linksContainer: {
-    marginTop: 10,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  linkText: {
-    color: '#FFFFFF',
-    marginLeft: 12,
-    fontSize: 14,
-    fontWeight: '500',
+  sectionText: {
+    fontSize: 16,
+    lineHeight: 24,
   },
 });

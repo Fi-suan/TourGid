@@ -1,22 +1,40 @@
 {
+  "cli": {
+    "version": ">= 13.2.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
       },
       "developmentClient": true,
       "distribution": "internal"
     },
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       },
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      },
+      "postInstall": {
+        "command": "bash eas-hooks/post-install.sh"
+      }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
       }
     }
+  },
+  "submit": {
+    "production": {}
   }
 }

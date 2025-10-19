@@ -3,24 +3,32 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Region {
-  id             String           @id @default(cuid())
-  name           String
-  description    String           @db.Text
-  mainCity       String
-  founded        String
-  mapImage       String
-  photoUrl       String?
-  attractions    Attraction[]
-  routes         Route[]
-  historicalFacts HistoricalFact[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id                 String           @id
+  name               String
+  region             String
+  coordinates        Json
+  description        String           @db.Text
+  population         String?
+  climate            String?
+  mainCity           String
+  founded            String
+  attractions_count  Int?
+  mapImage           String
+  photoUrl           String?
+  geography          String?          @db.Text
+  history            String?          @db.Text
+  culture            String?          @db.Text
+  nature             String?          @db.Text
+  attractions        Attraction[]
+  routes             Route[]
+  historicalFacts    HistoricalFact[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 }
 
 model Attraction {

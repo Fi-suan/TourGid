@@ -4,6 +4,7 @@
     "slug": "tourgid",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/icon.png",

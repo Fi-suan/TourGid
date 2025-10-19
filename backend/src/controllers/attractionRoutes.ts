@@ -3,47 +3,57 @@ import { getRegions, getAttractionsByRegion, getInterests, getRoutesByRegion, ge
 
 const router = Router();
 
-router.get('/regions', (req, res) => {
+router.get('/regions', async (req, res) => {
     try {
-        const regions = getRegions();
+        const regions = await getRegions();
         res.json(regions);
     } catch (error) {
+        console.error('Error fetching regions:', error);
         res.status(500).json({ message: 'Error fetching regions' });
     }
 });
 
-router.get('/attractions', (req, res) => {
+router.get('/attractions', async (req, res) => {
     try {
         const { regionId } = req.query;
-        const attractions = getAttractionsByRegion(regionId as string);
+        const attractions = await getAttractionsByRegion(regionId as string);
         res.json(attractions);
     } catch (error) {
+        console.error('Error fetching attractions:', error);
         res.status(500).json({ message: 'Error fetching attractions' });
     }
 });
 
-router.get('/interests', (req, res) => {
+router.get('/interests', async (req, res) => {
     try {
-        const interests = getInterests();
+        const interests = await getInterests();
         res.json(interests);
     } catch (error) {
+        console.error('Error fetching interests:', error);
         res.status(500).json({ message: 'Error fetching interests' });
     }
 });
 
-router.get('/routes', (req, res) => {
+router.get('/routes', async (req, res) => {
     try {
         const { regionId } = req.query;
-        const routes = getRoutesByRegion(regionId as string);
+        const routes = await getRoutesByRegion(regionId as string);
         res.json(routes);
     } catch (error) {
+        console.error('Error fetching routes:', error);
         res.status(500).json({ message: 'Error fetching routes' });
     }
 });
 
-router.get('/historical-facts', (req, res) => {
-    const regionId = req.query.regionId as string;
-    res.json(getHistoricalFactsByRegion(regionId));
+router.get('/historical-facts', async (req, res) => {
+    try {
+        const regionId = req.query.regionId as string;
+        const facts = await getHistoricalFactsByRegion(regionId);
+        res.json(facts);
+    } catch (error) {
+        console.error('Error fetching historical facts:', error);
+        res.status(500).json({ message: 'Error fetching historical facts' });
+    }
 });
 
 export default router;

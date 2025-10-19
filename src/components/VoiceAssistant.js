@@ -11,7 +11,8 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Platform
+  Platform,
+  TextInput
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -44,6 +45,7 @@ export const VoiceAssistant = ({
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const [volume, setVolume] = useState(0);
+  const [textInput, setTextInput] = useState('');
   
   const recordingRef = useRef(null);
   const animatedVolume = useRef(new Animated.Value(0)).current;
@@ -219,6 +221,13 @@ export const VoiceAssistant = ({
 
       console.log('🤖 Результат от бэкенда:', result);
 
+      // Если команда начинается с "найти/найди", открываем страницу достопримечательности
+      const textLower = text.toLowerCase();
+      if ((textLower.startsWith('найти') || textLower.startsWith('найди')) && result.function === 'build_route') {
+        result.function = 'show_info';
+        result.name = result.destination;
+      }
+
       switch (result.function) {
         case 'build_route':
           const destinationName = result.destination.toLowerCase();
@@ -230,11 +239,35 @@ export const VoiceAssistant = ({
           });
 
           if (destinationAttraction) {
+            // Создаем динамический маршрут
+            const dynamicRoute = {
+              id: `ai_route_${Date.now()}`,
+              name: `Маршрут к ${t(destinationAttraction.name)}`,
+              description: `AI-помощник построил маршрут к достопримечательности "${t(destinationAttraction.name)}"`,
+              duration: '30-60 минут',
+              difficulty: 'Легкий',
+              regionId: selectedRegionId,
+              attractions: [destinationAttraction.id],
+              recommendedTransport: 'Пешком/Такси',
+              distance: 'По карте',
+              estimatedCost: 'Зависит от транспорта',
+              tips: [
+                'Маршрут построен AI-помощником',
+                'Проверьте актуальность информации перед выездом',
+                'Следуйте указаниям на карте'
+              ],
+              highlights: [t(destinationAttraction.name)]
+            };
+
             setResponseText(t('voiceAssistant.buildingRoute', { name: t(destinationAttraction.name) }));
-            navigation.navigate('Map', { 
-              aiRoute: { destination: destinationAttraction },
-            });
-            setTimeout(closeModal, 800);
+            setTimeout(() => {
+              navigation.navigate('RouteDetail', { 
+                route: dynamicRoute,
+                translatedName: dynamicRoute.name,
+                translatedDescription: dynamicRoute.description
+              });
+              closeModal();
+            }, 800);
           } else {
             setResponseText(t('voiceAssistant.attractionNotFound', { name: result.destination }) + '\n\n' + attractionNames.slice(0, 5).join('\n'));
           }
@@ -318,10 +351,15 @@ export const VoiceAssistant = ({
 
   const closeModal = () => {
     setIsModalVisible(false);
+    setIsListening(false);
+    setIsProcessing(false);
     setTranscribedText('');
     setResponseText('');
     setSelectedImage(null);
     setError(null);
+    setIsAnalyzingImage(false);
+    setVolume(0);
+    setTextInput('');
     
     if (recordingRef.current) {
       recordingRef.current.stopAndUnloadAsync().catch(e => {
@@ -329,6 +367,14 @@ export const VoiceAssistant = ({
       });
       recordingRef.current = null;
     }
+  };
+
+  const handleTextSubmit = async () => {
+    if (textInput.trim().length === 0) return;
+    
+    setTranscribedText(textInput);
+    await processQuery(textInput);
+    setTextInput('');
   };
 
   const handleCameraPress = async () => {
@@ -394,19 +440,31 @@ export const VoiceAssistant = ({
         const landmarkName = visionResult.landmark.name.toLowerCase();
         setTranscribedText(`✅ ${t('voiceAssistant.recognized')}: ${visionResult.landmark.name}`);
 
+        // Ищем по английскому и русскому названию
         const foundAttraction = attractions.find(a => {
           const translatedName = t(a.name).toLowerCase();
           const translatedDesc = t(a.description).toLowerCase();
+          
+          // Поиск по всем языкам (ru, en, kz)
+          const ruName = TranslationService.translate(a.name, {}, 'ru').toLowerCase();
+          const enName = TranslationService.translate(a.name, {}, 'en').toLowerCase();
+          
           return translatedName.includes(landmarkName) || 
                  landmarkName.includes(translatedName) ||
-                 translatedDesc.includes(landmarkName);
+                 translatedDesc.includes(landmarkName) ||
+                 ruName.includes(landmarkName) ||
+                 landmarkName.includes(ruName) ||
+                 enName.includes(landmarkName) ||
+                 landmarkName.includes(enName);
         });
 
         if (foundAttraction) {
           setResponseText(`🎯 ${t('voiceAssistant.foundAttraction')}: ${t(foundAttraction.name)}`);
           setTimeout(() => {
-            navigation.navigate('Map', { 
-              routeFromUserTo: foundAttraction
+            navigation.navigate('AttractionDetail', { 
+              attraction: foundAttraction,
+              translatedName: t(foundAttraction.name),
+              translatedDescription: t(foundAttraction.description)
             });
             closeModal();
           }, 1500);
@@ -530,22 +588,45 @@ export const VoiceAssistant = ({
                 </Text>
                 
                 {!isListening && !isProcessing && !isAnalyzingImage && (
-                  <View style={styles.imageButtonsContainer}>
-                    <TouchableOpacity 
-                      style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
-                      onPress={handleCameraPress}
-                    >
-                      <Ionicons name="camera" size={24} color={theme.colors.primary} />
-                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>{t('voiceAssistant.camera')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
-                      onPress={handleGalleryPress}
-                    >
-                      <Ionicons name="images" size={24} color={theme.colors.primary} />
-                      <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>{t('voiceAssistant.gallery')}</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <>
+                    <View style={styles.imageButtonsContainer}>
+                      <TouchableOpacity 
+                        style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
+                        onPress={handleCameraPress}
+                      >
+                        <Ionicons name="camera" size={24} color={theme.colors.primary} />
+                        <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>{t('voiceAssistant.camera')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.imageButton, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}
+                        onPress={handleGalleryPress}
+                      >
+                        <Ionicons name="images" size={24} color={theme.colors.primary} />
+                        <Text style={[styles.imageButtonText, { color: theme.colors.text }]}>{t('voiceAssistant.gallery')}</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Текстовый ввод */}
+                    <View style={[styles.textInputContainer, { backgroundColor: theme.colors.cardBackground, borderColor: theme.colors.border }]}>
+                      <TextInput
+                        style={[styles.textInputField, { color: theme.colors.text }]}
+                        placeholder="Или напишите ваш запрос..."
+                        placeholderTextColor={theme.colors.textSecondary}
+                        value={textInput}
+                        onChangeText={setTextInput}
+                        onSubmitEditing={handleTextSubmit}
+                        multiline
+                        maxLength={200}
+                      />
+                      <TouchableOpacity 
+                        style={[styles.sendButton, { backgroundColor: theme.colors.primary }]}
+                        onPress={handleTextSubmit}
+                        disabled={textInput.trim().length === 0}
+                      >
+                        <Ionicons name="send" size={20} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                  </>
                 )}
               </View>
 
@@ -774,5 +855,28 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 2,
     opacity: 0.7,
+  },
+  textInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  textInputField: {
+    flex: 1,
+    fontSize: 15,
+    maxHeight: 100,
+    minHeight: 40,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
 }); 

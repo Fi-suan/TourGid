@@ -1,34 +1,67 @@
-import { REGIONS, ATTRACTIONS, INTERESTS, ROUTES, HISTORICAL_FACTS } from '../db/data';
+import prisma from '../db/prisma';
 
-// В будущем здесь будет логика для работы с настоящей базой данных
-
-export const getRegions = () => {
-    return REGIONS;
+export const getRegions = async () => {
+    return await prisma.region.findMany({
+        orderBy: { name: 'asc' }
+    });
 };
 
-export const getAttractionsByRegion = (regionId: string) => {
+export const getAttractionsByRegion = async (regionId?: string) => {
     if (!regionId) {
-        return ATTRACTIONS;
+        return await prisma.attraction.findMany({
+            include: {
+                categories: true,
+                region: true
+            },
+            orderBy: { name: 'asc' }
+        });
     }
-    return ATTRACTIONS.filter(attraction => attraction.regionId === regionId);
+    return await prisma.attraction.findMany({
+        where: { regionId },
+        include: {
+            categories: true,
+            region: true
+        },
+        orderBy: { name: 'asc' }
+    });
 };
 
-export const getInterests = () => {
-    return INTERESTS;
-}
+export const getInterests = async () => {
+    return await prisma.category.findMany({
+        orderBy: { name: 'asc' }
+    });
+};
 
-export const getRoutesByRegion = (regionId: string) => {
+export const getRoutesByRegion = async (regionId?: string) => {
     if (!regionId) {
-        return ROUTES;
+        return await prisma.route.findMany({
+            include: {
+                attractions: true,
+                region: true
+            },
+            orderBy: { name: 'asc' }
+        });
     }
-    // Предполагаем, что у маршрутов есть привязка к региону. Если нет, нужна доработка.
-    // Пока возвращаем все маршруты, т.к. в data.js у них нет regionId.
-    return ROUTES;
-}
+    return await prisma.route.findMany({
+        where: { regionId },
+        include: {
+            attractions: true,
+            region: true
+        },
+        orderBy: { name: 'asc' }
+    });
+};
 
-export const getHistoricalFactsByRegion = (regionId: string) => {
+export const getHistoricalFactsByRegion = async (regionId?: string) => {
     if (!regionId) {
-        return HISTORICAL_FACTS;
+        return await prisma.historicalFact.findMany({
+            include: { region: true },
+            orderBy: { year: 'asc' }
+        });
     }
-    return HISTORICAL_FACTS.filter(fact => fact.regionId === regionId);
+    return await prisma.historicalFact.findMany({
+        where: { regionId },
+        include: { region: true },
+        orderBy: { year: 'asc' }
+    });
 };

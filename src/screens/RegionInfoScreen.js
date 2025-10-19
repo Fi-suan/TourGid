@@ -73,21 +73,32 @@ export const RegionInfoScreen = ({ route }) => {
             <Text style={[styles.title, { color: theme.colors.text }]}>{t(region.name)}</Text>
             <Text style={[styles.description, { color: theme.colors.textSecondary }]}>{t(region.description)}</Text>
             
-            <InfoSection title={t('regionInfo.geography')}>
-                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.geography)}</Text>
-            </InfoSection>
+            {/* География */}
+            <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="map-outline" size={24} color={theme.colors.primary} />
+                <Text style={[styles.cardTitle, { color: theme.colors.text }]}>География</Text>
+              </View>
+              <Text style={[styles.cardText, { color: theme.colors.textSecondary }]}>{t(region.geography)}</Text>
+            </View>
 
-            <InfoSection title={t('regionInfo.history')}>
-                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.history)}</Text>
-            </InfoSection>
+            {/* Культура */}
+            <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="color-palette-outline" size={24} color={theme.colors.primary} />
+                <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Культура</Text>
+              </View>
+              <Text style={[styles.cardText, { color: theme.colors.textSecondary }]}>{t(region.culture)}</Text>
+            </View>
 
-            <InfoSection title={t('regionInfo.culture')}>
-                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.culture)}</Text>
-            </InfoSection>
-
-            <InfoSection title={t('regionInfo.nature')}>
-                <Text style={[styles.sectionText, { color: theme.colors.textSecondary }]}>{t(region.nature)}</Text>
-            </InfoSection>
+            {/* Природа */}
+            <View style={[styles.infoCard, { backgroundColor: theme.colors.cardBackground }]}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="leaf-outline" size={24} color={theme.colors.primary} />
+                <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Природа</Text>
+              </View>
+              <Text style={[styles.cardText, { color: theme.colors.textSecondary }]}>{t(region.nature)}</Text>
+            </View>
         </View>
         </ScrollView>
     </SafeAreaView>
@@ -128,20 +139,30 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  section: {
-    marginBottom: 20,
+  infoCard: {
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  sectionTitle: {
-    fontSize: 22,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    paddingBottom: 5,
+    marginLeft: 8,
   },
-  sectionText: {
-    fontSize: 16,
-    lineHeight: 24,
+  cardText: {
+    fontSize: 15,
+    lineHeight: 22,
   },
 });

@@ -480,11 +480,6 @@
       "description": "In 1991, the city of Shevchenko was renamed to Aktau."
     }
   },
-  "regionInfo": {
-    "population": "Population",
-    "climate": "Climate",
-    "founded": "Founded"
-  },
   "regions": {
     "pavlodar": {
       "name": "Pavlodar Region",

@@ -16,6 +16,7 @@ import TranslationService from './src/services/TranslationService';
 import GoogleAPIService from './src/services/GoogleAPIService';
 import { RoutesScreen } from './src/screens/RoutesScreen';
 import { RouteDetailScreen } from './src/screens/RouteDetailScreen';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -109,14 +110,16 @@ function AppContent() {
 
 export default function App() {
   return (
-    <View style={{ flex: 1 }} onLayout={() => {}}>
-      <ThemeProvider>
-        <LanguageProvider>
-          <RegionProvider>
-            <AppContent />
-          </RegionProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </View>
+    <ErrorBoundary>
+      <View style={{ flex: 1 }} onLayout={() => {}}>
+        <ThemeProvider>
+          <LanguageProvider>
+            <RegionProvider>
+              <AppContent />
+            </RegionProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </View>
+    </ErrorBoundary>
   );
 }

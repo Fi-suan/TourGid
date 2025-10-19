@@ -3,14 +3,19 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const getApiBaseUrl = () => {
-  // In a development build, we can dynamically determine the host machine's IP
+  // Production URL
+  if (process.env.NODE_ENV === 'production' || !__DEV__) {
+    return 'https://tourgid-production-2b46.up.railway.app/api';
+  }
+  
+  // Development: dynamically determine the host machine's IP
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
     const ipAddress = hostUri.split(':')[0];
     return `http://${ipAddress}:3000/api`;
   }
   
-  // Fallback for production or other environments
+  // Fallback for local development
   return 'http://localhost:3000/api'; 
 };
 

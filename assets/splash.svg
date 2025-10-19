@@ -1,0 +1,15 @@
+<svg width="1284" height="2778" viewBox="0 0 1284 2778" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1284" height="2778" fill="#4A90E2"/>
+  <circle cx="642" cy="1000" r="300" fill="white" opacity="0.1"/>
+  <circle cx="642" cy="1000" r="200" fill="white" opacity="0.15"/>
+  <circle cx="642" cy="1000" r="100" fill="white" opacity="0.2"/>
+  
+  <!-- Location Pin Icon -->
+  <path d="M642 800C582.5 800 534 848.5 534 908C534 1008 642 1150 642 1150C642 1150 750 1008 750 908C750 848.5 701.5 800 642 800Z" fill="white"/>
+  <circle cx="642" cy="908" r="35" fill="#4A90E2"/>
+  
+  <!-- App Name -->
+  <text x="642" y="1350" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">TourGid</text>
+  <text x="642" y="1430" font-family="Arial, sans-serif" font-size="32" fill="white" opacity="0.8" text-anchor="middle">Ваш путеводитель по Казахстану</text>
+</svg>
+

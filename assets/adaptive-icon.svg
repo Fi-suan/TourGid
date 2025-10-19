@@ -1,0 +1,11 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#4A90E2" rx="180"/>
+  
+  <!-- Location Pin -->
+  <path d="M512 256C408 256 324 340 324 444C324 604 512 768 512 768C512 768 700 604 700 444C700 340 616 256 512 256Z" fill="white"/>
+  <circle cx="512" cy="444" r="70" fill="#4A90E2"/>
+  
+  <!-- Route line -->
+  <path d="M300 650L450 720L574 800L724 750" stroke="white" stroke-width="12" stroke-linecap="round" stroke-dasharray="20 15" opacity="0.6"/>
+</svg>
+

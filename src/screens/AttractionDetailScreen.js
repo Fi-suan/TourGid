@@ -14,12 +14,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import TranslationService from '../services/TranslationService';
 import * as ApiService from '../services/ApiService';
+import PlacesService from '../services/PlacesService';
 import { mapImage } from '../utils/imageMapper';
 import ReviewCard from '../components/ReviewCard';
 
 const { width } = Dimensions.get('window');
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = __DEV__ ? 'http://localhost:3000/api' : 'https://tourgid-production-2b46.up.railway.app/api';
 
 export const AttractionDetailScreen = ({ route, navigation }) => {
   const { attraction, translatedName, translatedDescription } = route.params;
@@ -63,11 +64,14 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
       }
       
       try {
-        const searchName = await TranslationService.translate(attraction.name, {}, 'en');
+        const searchName = t(attraction.name);
+        console.log('🔍 Searching for place:', searchName);
         const places = await PlacesService.searchPlaces(searchName, attraction.coordinates, 1000);
         
         if (places && places.length > 0 && places[0].place_id) {
+          console.log('✅ Found place_id:', places[0].place_id);
           const details = await ApiService.getPlaceDetails(places[0].place_id);
+          console.log('✅ Got place details with reviews:', details?.reviews?.length || 0);
           setPlaceDetails(details);
           
           if (details && details.photos && details.photos.length > 0) {
@@ -75,6 +79,8 @@ export const AttractionDetailScreen = ({ route, navigation }) => {
             setHeaderImageUri(photoUrl);
             console.log('📸 Header photo loaded from Google Places API');
           }
+        } else {
+          console.log('⚠️ No places found for:', searchName);
         }
       } catch (error) {
         console.error("Failed to fetch place details:", error);

@@ -196,7 +196,14 @@ export const MapScreen = ({ route, navigation }) => {
     setSelectedMarker(attraction);
   };
 
-  const handleDetailsPress = (attraction) => {
+  const handleDetailsPress = (marker) => {
+    // Находим полную информацию о достопримечательности по ID маркера
+    const attraction = attractions.find(a => a.id === marker.id);
+    if (!attraction) {
+      console.error('❌ Attraction not found for marker:', marker.id);
+      return;
+    }
+    
     // Передаем переведенные данные
     const translatedName = t(attraction.name);
     const translatedDescription = t(attraction.description);

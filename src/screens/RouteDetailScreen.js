@@ -10,7 +10,7 @@ import { AttractionCard } from '../components/AttractionCard';
 const { width } = Dimensions.get('window');
 
 export const RouteDetailScreen = ({ route, navigation }) => {
-  const { routeId } = route.params;
+  const { routeId, route: passedRoute, translatedName, translatedDescription } = route.params;
   const { theme } = useTheme();
   const t = (key, params) => TranslationService.translate(key, params);
   const mapRef = useRef(null);
@@ -25,7 +25,21 @@ export const RouteDetailScreen = ({ route, navigation }) => {
       try {
         setIsLoading(true);
         setError(null);
-        // Fetch all routes and attractions in parallel
+        
+        // Если маршрут передан напрямую (например, от AI)
+        if (passedRoute) {
+          const allAttractions = await ApiService.getAttractions();
+          const routeAttractions = passedRoute.attractions
+            .map(id => allAttractions.find(a => a.id === id))
+            .filter(Boolean);
+          
+          setRouteData(passedRoute);
+          setAttractions(routeAttractions);
+          setIsLoading(false);
+          return;
+        }
+
+        // Иначе загружаем по ID
         const [allRoutes, allAttractions] = await Promise.all([
           ApiService.getRoutes(),
           ApiService.getAttractions()
@@ -53,11 +67,13 @@ export const RouteDetailScreen = ({ route, navigation }) => {
     };
 
     fetchRouteDetails();
-  }, [routeId]);
+  }, [routeId, passedRoute]);
 
   const onMapReady = () => {
     if (mapRef.current && attractions.length > 0) {
-      const identifiers = attractions.map(a => a.id);
+      // Ограничиваем до первых 2 маркеров для построения маршрута
+      const limitedAttractions = attractions.slice(0, 2);
+      const identifiers = limitedAttractions.map(a => a.id);
       mapRef.current.fitToSuppliedMarkers(identifiers, {
         edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
         animated: true,
@@ -118,12 +134,13 @@ export const RouteDetailScreen = ({ route, navigation }) => {
                     pitchEnabled={false}
                     rotateEnabled={false}
                 >
-                    {attractions.map(attraction => (
+                    {attractions.slice(0, 2).map((attraction, index) => (
                         <Marker
                             key={attraction.id}
                             identifier={attraction.id}
                             coordinate={attraction.coordinates}
                             title={t(attraction.name)}
+                            pinColor={index === 0 ? 'green' : 'red'}
                         />
                     ))}
                 </MapView>

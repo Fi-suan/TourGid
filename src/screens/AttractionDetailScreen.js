@@ -20,7 +20,7 @@ import ReviewCard from '../components/ReviewCard';
 
 const { width } = Dimensions.get('window');
 
-const API_BASE_URL = __DEV__ ? 'http://localhost:3000/api' : 'https://tourgid-production-2b46.up.railway.app/api';
+const API_BASE_URL = __DEV__ ? 'http://localhost:3000/api' : 'https://tourgid-backend-gu5s.onrender.com/api';
 
 export const AttractionDetailScreen = ({ route, navigation }) => {
   const { attraction, translatedName, translatedDescription } = route.params;

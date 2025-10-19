@@ -3,9 +3,9 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 const getApiBaseUrl = () => {
-  // Production URL
+  // Production URL (Render)
   if (process.env.NODE_ENV === 'production' || !__DEV__) {
-    return 'https://tourgid-production-2b46.up.railway.app/api';
+    return 'https://tourgid-backend-gu5s.onrender.com/api';
   }
   
   // Development: dynamically determine the host machine's IP

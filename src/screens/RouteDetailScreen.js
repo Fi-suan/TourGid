@@ -26,13 +26,22 @@ export const RouteDetailScreen = ({ route, navigation }) => {
         setIsLoading(true);
         setError(null);
         
+        console.log('🗺️ RouteDetailScreen: Fetching route details...', { routeId, hasPassedRoute: !!passedRoute });
+        
         // Если маршрут передан напрямую (например, от AI)
         if (passedRoute) {
+          console.log('✅ Using passed route:', passedRoute.id, passedRoute.name);
           const allAttractions = await ApiService.getAttractions();
+          console.log('📍 Total attractions loaded:', allAttractions.length);
           const routeAttractions = (passedRoute.attractions || [])
-            .map(id => allAttractions.find(a => a.id === id))
+            .map(id => {
+              const found = allAttractions.find(a => a.id === id);
+              if (!found) console.warn(`⚠️ Attraction ${id} not found`);
+              return found;
+            })
             .filter(Boolean);
           
+          console.log('✅ Route attractions found:', routeAttractions.length);
           setRouteData(passedRoute);
           setAttractions(routeAttractions);
           setIsLoading(false);
@@ -45,21 +54,30 @@ export const RouteDetailScreen = ({ route, navigation }) => {
           ApiService.getAttractions()
         ]);
 
+        console.log('📋 Total routes loaded:', allRoutes.length);
+        console.log('📍 Total attractions loaded:', allAttractions.length);
         const currentRoute = allRoutes.find(r => r.id === routeId);
 
         if (!currentRoute) {
+          console.error('❌ Route not found:', routeId);
           throw new Error('Route not found');
         }
 
+        console.log('✅ Found route:', currentRoute.id, currentRoute.name);
         const routeAttractions = (currentRoute.attractions || [])
-          .map(id => allAttractions.find(a => a.id === id))
+          .map(id => {
+            const found = allAttractions.find(a => a.id === id);
+            if (!found) console.warn(`⚠️ Attraction ${id} not found in route ${currentRoute.id}`);
+            return found;
+          })
           .filter(Boolean);
         
+        console.log('✅ Route attractions found:', routeAttractions.length);
         setRouteData(currentRoute);
         setAttractions(routeAttractions);
 
       } catch (e) {
-        console.error("Failed to fetch route details:", e);
+        console.error("❌ Failed to fetch route details:", e);
         setError(t('errors.fetchDataFailed'));
       } finally {
         setIsLoading(false);
@@ -154,15 +172,19 @@ export const RouteDetailScreen = ({ route, navigation }) => {
               />
             ))}
 
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screens.routeDetail.tipsTitle')}</Text>
-            <View style={styles.tipsContainer}>
-                {routeData.tips.map((tip, index) => (
-                    <View key={index} style={styles.tipItem}>
-                        <Ionicons name="checkmark-circle-outline" size={22} color={theme.colors.primary} style={styles.tipIcon} />
-                        <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{t(tip)}</Text>
-                    </View>
-                ))}
-            </View>
+            {routeData.tips && routeData.tips.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('screens.routeDetail.tipsTitle')}</Text>
+                <View style={styles.tipsContainer}>
+                    {routeData.tips.map((tip, index) => (
+                        <View key={index} style={styles.tipItem}>
+                            <Ionicons name="checkmark-circle-outline" size={22} color={theme.colors.primary} style={styles.tipIcon} />
+                            <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>{t(tip)}</Text>
+                        </View>
+                    ))}
+                </View>
+              </>
+            )}
         </View>
       </ScrollView>
       <TouchableOpacity 

@@ -16,12 +16,14 @@
     "reviewsTitle": "Отзывы",
     "details": "Подробнее",
     "loading": "Загрузка...",
-    "retry": "Повторить"
+    "retry": "Повторить",
+    "back": "Назад"
   },
   "errors": {
     "initializationFailed": "Не удалось загрузить начальные данные. Проверьте подключение к сети.",
     "fetchDataFailed": "Не удалось загрузить данные для региона.",
-    "errorTitle": "Произошла ошибка"
+    "errorTitle": "Произошла ошибка",
+    "routeNotFound": "Маршрут не найден"
   },
   "voiceAssistant": {
     "title": "AI Помощник",

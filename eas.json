@@ -20,9 +20,6 @@
       "distribution": "internal",
       "env": {
         "NODE_OPTIONS": "--max-old-space-size=4096"
-      },
-      "postInstall": {
-        "command": "bash eas-hooks/post-install.sh"
       }
     },
     "production": {

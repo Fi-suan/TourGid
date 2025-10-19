@@ -11,12 +11,8 @@
       "resizeMode": "contain",
       "backgroundColor": "#4A90E2"
     },
-    "permissions": [
-      "android.permission.CAMERA",
-      "android.permission.READ_EXTERNAL_STORAGE",
-      "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.READ_MEDIA_IMAGES",
-      "android.permission.RECORD_AUDIO"
+    "plugins": [
+      "./app-plugin.js"
     ],
     "assetBundlePatterns": [
       "**/*"
@@ -35,7 +31,6 @@
       }
     },
     "android": {
-      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/icon.png",
         "backgroundColor": "#ffffff"

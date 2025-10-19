@@ -29,7 +29,7 @@ export const RouteDetailScreen = ({ route, navigation }) => {
         // Если маршрут передан напрямую (например, от AI)
         if (passedRoute) {
           const allAttractions = await ApiService.getAttractions();
-          const routeAttractions = passedRoute.attractions
+          const routeAttractions = (passedRoute.attractions || [])
             .map(id => allAttractions.find(a => a.id === id))
             .filter(Boolean);
           
@@ -51,7 +51,7 @@ export const RouteDetailScreen = ({ route, navigation }) => {
           throw new Error('Route not found');
         }
 
-        const routeAttractions = currentRoute.attractions
+        const routeAttractions = (currentRoute.attractions || [])
           .map(id => allAttractions.find(a => a.id === id))
           .filter(Boolean);
         

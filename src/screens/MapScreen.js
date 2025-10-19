@@ -20,7 +20,7 @@ import { getDirectionsFromGoogle } from '../utils/geoUtils';
 const { width } = Dimensions.get('window');
 
 export const MapScreen = ({ route, navigation }) => {
-  const { selectedAttractions, selectedRoute, aiRoute, routeFromUserTo } = route.params || {};
+  const { selectedAttractions, selectedRoute, selectedRouteObject, aiRoute, routeFromUserTo } = route.params || {};
   const [markers, setMarkers] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [attractions, setAttractions] = useState([]);
@@ -84,6 +84,7 @@ export const MapScreen = ({ route, navigation }) => {
       routeFromUserTo: !!routeFromUserTo, 
       aiRoute: !!aiRoute, 
       selectedRoute, 
+      selectedRouteObject: !!selectedRouteObject,
       selectedAttractions: selectedAttractions?.length || 0 
     });
 
@@ -96,12 +97,24 @@ export const MapScreen = ({ route, navigation }) => {
       attractionsToShow = [aiRoute.destination];
       shouldShowRoute = true;
       console.log('🤖 Режим: AI маршрут');
+    } else if (selectedRouteObject) {
+      // AI маршрут передан как объект
+      console.log('🤖 Режим: AI маршрут (объект), attractions:', selectedRouteObject.attractions);
+      const routeAttractionIds = selectedRouteObject.attractions || [];
+      attractionsToShow = routeAttractionIds
+        .map(id => attractions.find(a => a.id === id))
+        .filter(Boolean);
+      shouldShowRoute = true;
+      console.log('🗺️ AI маршрут, мест:', attractionsToShow.length);
     } else if (selectedRoute) {
       const routeData = routes.find(r => r.id === selectedRoute);
       if (routeData) {
-        attractionsToShow = routeData.attractions
-          .map(id => attractions.find(a => a.id === id))
-          .filter(Boolean);
+        // Бэкенд возвращает полные объекты достопримечательностей, а не ID
+        attractionsToShow = Array.isArray(routeData.attractions) && routeData.attractions.every(a => typeof a === 'object')
+          ? routeData.attractions.filter(a => a && a.id) // Уже объекты
+          : routeData.attractions // Если ID, конвертируем
+              .map(id => attractions.find(a => a.id === id))
+              .filter(Boolean);
         shouldShowRoute = true;
         console.log('🗺️ Режим: готовый маршрут, мест:', attractionsToShow.length);
       }

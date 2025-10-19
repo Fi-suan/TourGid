@@ -49,13 +49,9 @@ export const RouteDetailScreen = ({ route, navigation }) => {
         }
 
         // Иначе загружаем по ID
-        const [allRoutes, allAttractions] = await Promise.all([
-          ApiService.getRoutes(),
-          ApiService.getAttractions()
-        ]);
+        const allRoutes = await ApiService.getRoutes();
 
         console.log('📋 Total routes loaded:', allRoutes.length);
-        console.log('📍 Total attractions loaded:', allAttractions.length);
         const currentRoute = allRoutes.find(r => r.id === routeId);
 
         if (!currentRoute) {
@@ -64,13 +60,12 @@ export const RouteDetailScreen = ({ route, navigation }) => {
         }
 
         console.log('✅ Found route:', currentRoute.id, currentRoute.name);
-        const routeAttractions = (currentRoute.attractions || [])
-          .map(id => {
-            const found = allAttractions.find(a => a.id === id);
-            if (!found) console.warn(`⚠️ Attraction ${id} not found in route ${currentRoute.id}`);
-            return found;
-          })
-          .filter(Boolean);
+        console.log('📍 Route attractions (raw):', currentRoute.attractions);
+        
+        // Бэкенд возвращает полные объекты достопримечательностей, а не ID
+        const routeAttractions = Array.isArray(currentRoute.attractions) 
+          ? currentRoute.attractions.filter(a => a && typeof a === 'object' && a.id)
+          : [];
         
         console.log('✅ Route attractions found:', routeAttractions.length);
         setRouteData(currentRoute);
@@ -189,7 +184,14 @@ export const RouteDetailScreen = ({ route, navigation }) => {
       </ScrollView>
       <TouchableOpacity 
         style={[styles.startButton, { backgroundColor: theme.colors.primary }]}
-        onPress={() => navigation.navigate('Map', { selectedRoute: routeData.id })}
+        onPress={() => {
+          // Для AI маршрутов передаем полный объект, для обычных - только ID
+          if (routeData.id.startsWith('ai_route_')) {
+            navigation.navigate('Map', { selectedRouteObject: routeData });
+          } else {
+            navigation.navigate('Map', { selectedRoute: routeData.id });
+          }
+        }}
       >
         <Ionicons name="navigate-outline" size={24} color="white" />
         <Text style={styles.startButtonText}>{t('screens.routeDetail.startButton')}</Text>

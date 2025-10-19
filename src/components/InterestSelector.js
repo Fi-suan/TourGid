@@ -24,7 +24,7 @@ export const InterestSelector = ({ interests, onSelect, selectedInterest }) => {
                 { backgroundColor: theme.isDark ? '#333333' : '#F0F8FF' },
                 isSelected && { backgroundColor: theme.colors.primary }
               ]}
-              onPress={() => onSelect(item)}
+              onPress={() => onSelect(isSelected ? null : item)}
               activeOpacity={0.7}
             >
               <Ionicons 

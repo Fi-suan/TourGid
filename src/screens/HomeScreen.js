@@ -133,7 +133,11 @@ export const HomeScreen = ({ navigation }) => {
     const name = t(attraction.name).toLowerCase();
     const description = t(attraction.description).toLowerCase();
     const query = searchQuery.toLowerCase();
-    const interestMatch = selectedInterest ? attraction.categories?.includes(selectedInterest.id) : true;
+    
+    // Бэкенд возвращает полные объекты категорий, а не ID
+    const interestMatch = selectedInterest 
+      ? attraction.categories?.some(cat => cat.id === selectedInterest.id || cat === selectedInterest.id)
+      : true;
 
     return (name.includes(query) || description.includes(query)) && interestMatch;
   });
